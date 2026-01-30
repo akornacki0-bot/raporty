@@ -1,0 +1,15 @@
+{
+  "name": "System Raportowania",
+  "short_name": "Raporty",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a252f",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1088/1088537.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
