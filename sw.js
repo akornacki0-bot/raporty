@@ -1,4 +1,4 @@
-const CACHE_NAME = 'raporty-v1';
+const CACHE_NAME = 'raporty-v19-16';
 const ASSETS = [
   './',
   './index.html',
