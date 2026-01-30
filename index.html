@@ -186,5 +186,10 @@
     if(state.floors.length === 0) addFloor();
     render();
 </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
+  }
+</script>
 </body>
 </html>
