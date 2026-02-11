@@ -1,34 +1,11 @@
-const CACHE_NAME = 'pr-raporty-v29-stable';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon.png'
-];
-
-// Instalacja i wymuszenie nowej wersji
-self.addEventListener('install', e => {
-  self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-  );
-});
-
-// Usuwanie starych wersji cache (v27, v28 itd.)
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.map(key => {
-        if (key !== CACHE_NAME) return caches.delete(key);
-      })
-    ))
-  );
-  return self.clients.claim();
-});
-
-// Strategia: Najpierw Sieć, potem Cache
-self.addEventListener('fetch', e => {
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
-  );
-});
+{
+  "short_name": "RaportyPRO",
+  "name": "System Inspekcji v30",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#2c3e50",
+  "background_color": "#ffffff"
+}
