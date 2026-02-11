@@ -1,15 +1,22 @@
 {
-  "name": "System Raportowania v19.16",
   "short_name": "Raporty",
-  "start_url": "index.html",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1a252f",
+  "name": "System Raportowania Odbiorów v19.22",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/1088/1088537.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
-  ]
+  ],
+  "start_url": "./index.html",
+  "background_color": "#1a252f",
+  "display": "standalone",
+  "scope": "./",
+  "theme_color": "#1a252f",
+  "description": "Profesjonalne narzędzie do generowania protokołów odbioru technicznego."
 }
