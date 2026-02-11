@@ -2,136 +2,250 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PR RAPORTY v26 - TEST</title>
+    <title>PR RAPORTY v27 - SPEED</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { font-family: sans-serif; margin: 0; padding-top: 60px; background: #f0f0f0; }
-        .toolbar { position: fixed; top: 0; width: 100%; height: 50px; background: #222; display: flex; justify-content: center; gap: 10px; align-items: center; z-index: 999; }
-        .btn { padding: 8px; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .page { width: 210mm; min-height: 290mm; background: #fff; margin: 10px auto; padding: 10mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .plan-box { width: 100%; height: 500px; background: #ddd; position: relative; border: 2px solid #999; overflow: hidden; }
+        :root { --dark: #1a1a1a; --acc: #f39c12; }
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
+        body { font-family: sans-serif; margin: 0; padding-top: 55px; background: #eef0f2; overflow-x: hidden; }
+        
+        /* Toolbar - lekki i prosty */
+        .toolbar { position: fixed; top: 0; width: 100%; height: 50px; background: var(--dark); display: flex; justify-content: center; gap: 5px; align-items: center; z-index: 999; }
+        .btn { padding: 8px 10px; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+
+        /* Obszar roboczy */
+        .page { width: 210mm; min-height: 290mm; background: #fff; margin: 10px auto; padding: 10mm; position: relative; }
+        .plan-box { width: 100%; height: 500px; background: #ddd; position: relative; border: 1px solid #999; overflow: hidden; touch-action: none; }
         .plan-img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-        .dot { position: absolute; width: 30px; height: 30px; background: red; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); cursor: pointer; z-index: 100; border: 2px solid #fff; }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; }
-        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; width: 90%; max-width: 400px; z-index: 1001; border-radius: 10px; }
-        .input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; }
+        
+        /* Kropki - uproszczone dla wydajności */
+        .dot { position: absolute; width: 28px; height: 28px; background: red; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); font-size: 12px; font-weight: bold; border: 2px solid #fff; z-index: 10; }
+        .dot.c-reported { background: #e67e22; }
+        .dot.c-not_reported { background: #2c3e50; }
+        .dot.c-to_discuss { background: #7f8c8d; }
+
+        /* Modal - szybki popup */
+        .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); z-index: 1000; }
+        .modal { display: none; position: fixed; top:50%; left:50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; width: 95%; max-width: 450px; border-radius: 8px; z-index: 1001; max-height: 90vh; overflow-y: auto; }
+        .input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+
+        /* PDF 2 usterki na stronę */
+        .pdf-defect { height: 130mm; border-bottom: 1px solid #eee; padding: 10px 0; display: flex; flex-direction: column; page-break-inside: avoid; }
+        .pdf-img { width: 100%; height: 85mm; object-fit: contain; background: #f9f9f9; border: 1px solid #ddd; }
+
+        @media print { 
+            .no-print { display: none !important; } 
+            .page { margin: 0; box-shadow: none; width: 210mm; height: 297mm; page-break-after: always; }
+            body { padding: 0; background: #fff; }
+        }
     </style>
 </head>
 <body>
 
-<div class="toolbar">
-    <button class="btn" style="background:green" onclick="addFloor()">+ PIĘTRO</button>
-    <button class="btn" style="background:blue" onclick="manualSave()">ZAPISZ JSON</button>
-    <button class="btn" style="background:orange" onclick="document.getElementById('file-in').click()">WCZYTAJ</button>
-    <button class="btn" style="background:red" onclick="window.print()">DRUKUJ PDF</button>
+<div class="toolbar no-print">
+    <button class="btn" style="background:#27ae60" onclick="addFloor()">+ Piętro</button>
+    <button class="btn" style="background:#2980b9" onclick="manualSave()">Zapisz JSON</button>
+    <button class="btn" style="background:#8e44ad" onclick="document.getElementById('file-in').click()">Wczytaj</button>
+    <button class="btn" style="background:#f39c12" onclick="openConfig()">Ustawienia</button>
+    <button class="btn" style="background:#e74c3c" onclick="window.print()">Drukuj PDF</button>
 </div>
 
 <input type="file" id="file-in" style="display:none" onchange="importData(event)">
 <div class="overlay" id="ov" onclick="closeM()"></div>
 
 <div class="modal" id="mod">
-    <h3 id="m-title">Edycja</h3>
-    <input id="m-room" class="input" placeholder="Pomieszczenie">
-    <textarea id="m-desc" class="input" placeholder="Opis usterki" style="height:80px"></textarea>
-    <button class="btn" style="background:green; width:100%" onclick="saveM()">ZAPISZ PUNKT</button>
-    <button class="btn" style="background:red; width:100%; margin-top:5px;" onclick="delP()">USUŃ</button>
+    <h3 id="m-title" style="margin:0">Edycja Punktu</h3>
+    <input id="m-room" class="input" placeholder="Pomieszczenie (np. Salon)" list="dl-rooms">
+    <div id="m-img-box" style="width:100%; height:120px; background:#eee; border:1px dashed #999; display:flex; justify-content:center; align-items:center; cursor:pointer; overflow:hidden;" onclick="uploadFile('defect')">Dodaj zdjęcie</div>
+    <textarea id="m-desc" class="input" placeholder="Opis usterki" style="height:70px"></textarea>
+    <input id="m-norm" class="input" placeholder="Norma / Podstawa">
+    
+    <div id="m-checklist" style="max-height:100px; overflow-y:auto; background:#f9f9f9; padding:5px; border-radius:4px; margin-bottom:10px;"></div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px;">
+        <button class="btn" style="background:#e67e22" onclick="saveM('reported')">Zgłoś</button>
+        <button class="btn" style="background:#2c3e50" onclick="saveM('not_reported')">Niezgł.</button>
+        <button class="btn" style="background:#7f8c8d" onclick="saveM('to_discuss')">Uwaga</button>
+    </div>
+    <button class="btn" style="background:red; width:100%; margin-top:10px;" onclick="delP()">USUŃ PUNKT</button>
+</div>
+
+<div class="modal" id="mod-cfg">
+    <h3>Ustawienia Checklisty</h3>
+    <textarea id="cfg-txt" class="input" style="height:200px" placeholder="Kategoria: element1, element2"></textarea>
+    <button class="btn" style="background:green; width:100%" onclick="saveCfg()">Zapisz Konfigurację</button>
 </div>
 
 <div id="app"></div>
+<datalist id="dl-rooms"></datalist>
 
 <script>
-    let data = { meta: {}, floors: [] };
-    let active = { fi: null, di: null };
+    let state = JSON.parse(localStorage.getItem('pr_v27_data')) || {
+        meta: { inv:'', adr:'', date:'', cli:'', logo:'', mainImg:'' },
+        floors: [],
+        config: { rooms:['Salon','Kuchnia','Łazienka'], checklist:{"Ściany":["Tynki","Kąty"]} }
+    };
+    let active = { fi: null, di: null, tempImg: '' };
 
-    // FUNKCJA RENDERUJĄCA
+    // Zabezpieczenie przed odświeżeniem
+    window.onbeforeunload = () => "Czy zapisałeś zmiany?";
+
     function render() {
-        const root = document.getElementById('app');
-        root.innerHTML = '';
-        data.floors.forEach((f, fi) => {
-            const page = document.createElement('div');
-            page.className = 'page';
-            page.innerHTML = `
-                <h3>${f.name}</h3>
+        const root = document.getElementById('app'); root.innerHTML = '';
+        
+        // 1. Okładka
+        const cover = document.createElement('div'); cover.className = 'page';
+        cover.innerHTML = `
+            <div style="text-align:center; height:100%; display:flex; flex-direction:column; justify-content:center;">
+                <div onclick="uploadFile('logo')" style="cursor:pointer; margin-bottom:20px;">
+                    ${state.meta.logo ? `<img src="${state.meta.logo}" style="max-height:100px;">` : '<h1>[ LOGO ]</h1>'}
+                </div>
+                <h1 style="border-bottom:3px solid #000; padding-bottom:10px;">PROTOKÓŁ ODBIORU</h1>
+                <div style="text-align:left; max-width:400px; margin:20px auto;">
+                    <input class="input" placeholder="Inwestycja" value="${state.meta.inv}" onchange="state.meta.inv=this.value">
+                    <input class="input" placeholder="Adres" value="${state.meta.adr}" onchange="state.meta.adr=this.value">
+                    <input class="input" type="date" value="${state.meta.date}" onchange="state.meta.date=this.value">
+                </div>
+                <div style="width:100%; height:80mm; background:#eee; cursor:pointer; overflow:hidden; border:1px solid #ccc;" onclick="uploadFile('main')">
+                    ${state.meta.mainImg ? `<img src="${state.meta.mainImg}" style="width:100%; height:100%; object-fit:cover;">` : 'ZDJĘCIE GŁÓWNE'}
+                </div>
+            </div>`;
+        root.appendChild(cover);
+
+        // 2. Piętra i Usterki
+        state.floors.forEach((f, fi) => {
+            const fPage = document.createElement('div'); fPage.className = 'page';
+            fPage.innerHTML = `
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid #000; margin-bottom:10px;">
+                    <b>${f.name}</b><span>${state.meta.inv}</span>
+                </div>
                 <div class="plan-box" onclick="addP(event, ${fi})">
-                    ${f.img ? `<img src="${f.img}" class="plan-img">` : '<h2 style="text-align:center; padding-top:200px;">KLIKNIJ BY WGRAĆ RZUT</h2>'}
-                    ${f.pts.map((p, pi) => `<div class="dot" style="left:${p.x}%; top:${p.y}%;" onclick="event.stopPropagation(); openM(${fi}, ${pi})">${pi+1}</div>`).join('')}
+                    ${f.img ? `<img src="${f.img}" class="plan-img" style="transform:rotate(${f.rot || 0}deg)">` : '<h2 style="padding-top:200px; text-align:center;">KLIKNIJ BY WGRAĆ RZUT</h2>'}
+                    ${f.pts.map((p, pi) => `<div class="dot c-${p.status}" style="left:${p.x}%; top:${p.y}%;" onclick="event.stopPropagation(); openM(${fi}, ${pi})">${pi+1}</div>`).join('')}
+                </div>
+                <div class="no-print" style="margin-top:10px; display:flex; gap:5px;">
+                    <button class="btn" style="background:#333" onclick="rotateF(${fi})">Obróć</button>
+                    <button class="btn" style="background:red" onclick="delF(${fi})">Usuń</button>
+                    <input class="input" style="width:150px; margin:0;" value="${f.name}" onchange="state.floors[${fi}].name=this.value; render()">
                 </div>`;
-            root.appendChild(page);
+            root.appendChild(fPage);
+
+            // Wykaz usterek (2 na stronę)
+            for (let i = 0; i < f.pts.length; i += 2) {
+                const dPage = document.createElement('div'); dPage.className = 'page';
+                for (let j = i; j < i + 2 && j < f.pts.length; j++) {
+                    const p = f.pts[j];
+                    dPage.innerHTML += `
+                        <div class="pdf-defect">
+                            <b style="color:var(--acc)">PUNKT ${j + 1}: ${p.room || 'Inne'}</b>
+                            <p style="font-size:14px; margin:5px 0;">${p.desc || 'Brak opisu.'}</p>
+                            ${p.img ? `<img src="${p.img}" class="pdf-img">` : '<div class="pdf-img" style="display:flex; align-items:center; justify-content:center;">Brak zdjęcia</div>'}
+                            ${p.norm ? `<small style="color:red; margin-top:5px;">NORMA: ${p.norm}</small>` : ''}
+                        </div>`;
+                }
+                root.appendChild(dPage);
+            }
         });
+        document.getElementById('dl-rooms').innerHTML = state.config.rooms.map(r=>`<option value="${r}">`).join('');
     }
 
-    // DODAWANIE PIĘTRA
-    function addFloor() {
-        data.floors.push({ name: "Piętro " + (data.floors.length + 1), img: '', pts: [] });
-        render();
-    }
-
-    // DODAWANIE KROPKI
     function addP(e, fi) {
-        if (!data.floors[fi].img) {
-            const inp = document.createElement('input'); inp.type = 'file';
-            inp.onchange = ev => {
-                const r = new FileReader();
-                r.onload = e2 => { data.floors[fi].img = e2.target.result; render(); };
-                r.readAsDataURL(ev.target.files[0]);
-            };
-            inp.click();
-            return;
-        }
+        if(!state.floors[fi].img) return uploadFile('plan', fi);
         const r = e.currentTarget.getBoundingClientRect();
-        const pi = data.floors[fi].pts.length;
-        data.floors[fi].pts.push({
-            x: ((e.clientX - r.left) / r.width) * 100,
-            y: ((e.clientY - r.top) / r.height) * 100,
-            room: '', desc: ''
-        });
-        render();
-        openM(fi, pi);
+        const pi = state.floors[fi].pts.length;
+        state.floors[fi].pts.push({ x:((e.clientX-r.left)/r.width)*100, y:((e.clientY-r.top)/r.height)*100, room:'', desc:'', norm:'', status:'to_discuss', img:'', checks:{} });
+        render(); openM(fi, pi);
     }
 
-    // OTWIERANIE MODALA
     function openM(fi, pi) {
         active = { fi, di: pi };
-        const p = data.floors[fi].pts[pi];
+        const p = state.floors[fi].pts[pi];
+        active.tempImg = p.img || '';
         document.getElementById('m-room').value = p.room;
         document.getElementById('m-desc').value = p.desc;
-        document.getElementById('ov').style.display = 'block';
-        document.getElementById('mod').style.display = 'block';
+        document.getElementById('m-norm').value = p.norm;
+        document.getElementById('m-img-box').innerHTML = p.img ? `<img src="${p.img}" style="height:100%">` : 'Dodaj zdjęcie';
+        
+        const cList = document.getElementById('m-checklist'); cList.innerHTML = '';
+        Object.entries(state.config.checklist).forEach(([cat, items]) => {
+            cList.innerHTML += `<b>${cat}</b><br>`;
+            items.forEach(it => {
+                const key = `${cat}:${it}`;
+                cList.innerHTML += `<label style="display:block;"><input type="checkbox" ${p.checks[key]?'checked':''} onchange="toggleC('${key}')"> ${it}</label>`;
+            });
+        });
+
+        document.getElementById('ov').style.display='block';
+        document.getElementById('mod').style.display='block';
     }
 
-    function saveM() {
-        const p = data.floors[active.fi].pts[active.di];
+    function toggleC(key) { state.floors[active.fi].pts[active.di].checks[key] = !state.floors[active.fi].pts[active.di].checks[key]; }
+
+    function saveM(status) {
+        const p = state.floors[active.fi].pts[active.di];
         p.room = document.getElementById('m-room').value;
         p.desc = document.getElementById('m-desc').value;
-        closeM();
-        render();
+        p.norm = document.getElementById('m-norm').value;
+        p.status = status;
+        p.img = active.tempImg;
+        if(p.room && !state.config.rooms.includes(p.room)) state.config.rooms.push(p.room);
+        closeM(); render();
     }
 
-    function closeM() {
-        document.getElementById('ov').style.display = 'none';
-        document.getElementById('mod').style.display = 'none';
+    function uploadFile(type, fi) {
+        const i = document.createElement('input'); i.type='file'; i.accept='image/*';
+        i.onchange = e => {
+            const r = new FileReader();
+            r.onload = ev => {
+                const res = ev.target.result;
+                if(type==='logo') state.meta.logo = res;
+                else if(type==='main') state.meta.mainImg = res;
+                else if(type==='plan') state.floors[fi].img = res;
+                else if(type==='defect') { active.tempImg = res; document.getElementById('m-img-box').innerHTML = `<img src="${res}" style="height:100%">`; }
+                render();
+            }; r.readAsDataURL(e.target.files[0]);
+        }; i.click();
     }
 
-    function delP() {
-        data.floors[active.fi].pts.splice(active.di, 1);
-        closeM();
-        render();
-    }
-
+    function rotateF(fi) { state.floors[fi].rot = ((state.floors[fi].rot || 0)+90)%360; render(); }
+    function delF(fi) { if(confirm("Usunąć?")) { state.floors.splice(fi,1); render(); } }
+    function delP() { state.floors[active.fi].pts.splice(active.di, 1); closeM(); render(); }
+    function closeM() { document.querySelectorAll('.modal, .overlay').forEach(el=>el.style.display='none'); }
+    function addFloor() { state.floors.push({ name:"Piętro "+(state.floors.length+1), img:'', pts:[], rot:0 }); render(); }
+    
     function manualSave() {
-        const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
+        localStorage.setItem('pr_v27_data', JSON.stringify(state));
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(state)], {type:'application/json'}));
         a.download = "raport.json"; a.click();
     }
 
     function importData(e) {
-        const r = new FileReader();
-        r.onload = ev => { data = JSON.parse(ev.target.result); render(); };
-        r.readAsText(e.target.files[0]);
+        const r = new FileReader(); r.onload = ev => { 
+            state = JSON.parse(ev.target.result); 
+            state.floors.forEach(f => f.pts.forEach(p => { if(!p.checks) p.checks={}; }));
+            render(); 
+        }; r.readAsText(e.target.files[0]);
     }
 
-    if (data.floors.length === 0) addFloor();
+    function openConfig() {
+        let val = ""; Object.entries(state.config.checklist).forEach(([k,v]) => val += `${k}: ${v.join(', ')}\n`);
+        document.getElementById('cfg-txt').value = val;
+        document.getElementById('ov').style.display='block';
+        document.getElementById('mod-cfg').style.display='block';
+    }
+
+    function saveCfg() {
+        state.config.checklist = {};
+        document.getElementById('cfg-txt').value.split('\n').forEach(line => {
+            if(line.includes(':')) {
+                const [k, v] = line.split(':');
+                state.config.checklist[k.trim()] = v.split(',').map(i=>i.trim()).filter(i=>i);
+            }
+        });
+        closeM(); render();
+    }
+
+    if(state.floors.length === 0) addFloor();
     render();
 </script>
 </body>
