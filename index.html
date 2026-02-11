@@ -3,339 +3,216 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SYSTEM RAPORTOWANIA PRO</title>
-
+<title>System Raportowania PRO</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000">
 
 <style>
 :root{
---orange:#e67e22;
---black:#111;
---gray:#999;
+--bg:#f5f6f7;
+--card:#fff;
+--text:#111;
+--main:#111;
+--accent:#f97316;
 }
-
-body{margin:0;font-family:system-ui;background:#f4f5f7}
-header{background:#000;color:#fff;padding:10px;text-align:center;font-weight:700}
-.toolbar{display:flex;gap:8px;padding:8px;background:#111}
-.toolbar button{flex:1;padding:10px;border:0;border-radius:6px;background:var(--orange);color:#fff;font-weight:700}
-.page{background:#fff;margin:10px;padding:10px;border-radius:12px}
-
-.planBox{
-position:relative;
-height:75vh;
-background:#eee;
-border-radius:12px;
-overflow:hidden;
-cursor:crosshair;
+.dark{
+--bg:#0f1115;
+--card:#1c1f26;
+--text:#fff;
+--main:#000;
 }
-
-.planBox img{
-width:100%;
-height:100%;
-object-fit:contain;
-pointer-events:none;
-}
-
-.dot{
-position:absolute;
-width:26px;
-height:26px;
-border-radius:50%;
-color:#fff;
-display:flex;
-align-items:center;
-justify-content:center;
-transform:translate(-50%,-50%);
-font-weight:800;
-font-size:11px;
-border:2px solid #fff;
-}
-
-.rep{background:var(--orange)}
-.nrep{background:#000}
-.none{background:#888}
-
-.counter{
-display:flex;
-justify-content:space-around;
-padding:8px;
-font-size:12px;
-font-weight:700;
-}
-
-.modal-bg{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,.75);
-display:none;
-z-index:9999;
-}
-
-.modal{
-position:fixed;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-background:#fff;
-border-radius:12px;
-padding:15px;
-width:420px;
-max-width:95vw;
-display:none;
-z-index:10000;
-}
-
-.modal input,.modal textarea,select{
-width:100%;
-padding:8px;
-border-radius:6px;
-border:1px solid #ccc;
-margin-bottom:8px;
-}
-
-.modal-buttons{
-display:grid;
-grid-template-columns:1fr 1fr 1fr;
-gap:8px;
-}
-
-.modal-buttons button{
-padding:8px;
-border:0;
-border-radius:6px;
-color:#fff;
-font-weight:700;
-}
-
-.photoBox{
-width:100%;
-height:160px;
-background:#f1f1f1;
-border:2px dashed #ccc;
-border-radius:8px;
-display:flex;
-align-items:center;
-justify-content:center;
-cursor:pointer;
-margin-bottom:8px;
-overflow:hidden;
-}
-
-.photoBox img{width:100%;height:100%;object-fit:contain}
-
-@media print{
-.toolbar,.modal,.modal-bg{display:none!important}
-body{background:#fff}
-.page{margin:0;border-radius:0}
-}
+*{box-sizing:border-box;font-family:system-ui}
+body{margin:0;background:var(--bg);color:var(--text)}
+header{position:fixed;top:0;left:0;width:100%;background:var(--main);color:#fff;padding:8px;display:flex;gap:8px;z-index:10}
+header button{flex:1;border:0;border-radius:6px;padding:10px;font-weight:700;background:var(--accent);color:#000}
+#app{padding-top:60px}
+.page{background:var(--card);margin:10px;border-radius:10px;padding:10px}
+input,textarea,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:1px solid #ccc}
+.plan{position:relative;height:65vh;background:#ddd;border-radius:10px;overflow:hidden}
+.plan img{width:100%;height:100%;object-fit:contain}
+.dot{position:absolute;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;transform:translate(-50%,-50%)}
+.zgl{background:var(--accent)}
+.niez{background:#000}
+.omow{background:#888}
+#modal,#ov{display:none}
+#ov{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:100}
+#modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);padding:15px;border-radius:12px;width:90%;max-width:420px;z-index:101}
+.photo{height:150px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.photo img{width:100%;height:100%;object-fit:contain}
+.counter{display:flex;gap:10px;font-size:12px;justify-content:space-around;padding:5px}
 </style>
 </head>
 
 <body>
 
-<header>SYSTEM RAPORTOWANIA PRO</header>
-
-<div class="toolbar no-print">
+<header>
 <button onclick="newProject()">NOWY</button>
-<button onclick="addFloor()">+ PIĘTRO</button>
-<button onclick="saveJSON()">ZAPISZ</button>
-<button onclick="loadJSON()">WCZYTAJ</button>
+<button onclick="save()">ZAPISZ</button>
+<button onclick="load()">WCZYTAJ</button>
+<button onclick="toggleTheme()">TRYB</button>
 <button onclick="window.print()">PDF</button>
-</div>
+</header>
 
 <div id="app"></div>
-
 <input type="file" id="loader" hidden>
 
-<div class="modal-bg" onclick="closeModal()"></div>
+<div id="ov" onclick="closeModal()"></div>
+<div id="modal">
+<h3 id="mTitle">Usterka</h3>
+<label>Pomieszczenie</label>
+<input id="mRoom">
+<label>Opis usterki</label>
+<textarea id="mDesc" autofocus></textarea>
+<label>Zdjęcie</label>
+<div class="photo" onclick="addPhoto()"><small>DODAJ</small></div>
 
-<div class="modal" id="modal">
-<h3 id="m-title">EDYCJA USTERKI</h3>
-
-<div class="photoBox" onclick="uploadImg()">
-<span>DODAJ ZDJĘCIE</span>
+<div style="display:flex;gap:6px;margin-top:10px">
+<button onclick="setStatus('zgl')" style="background:#f97316;color:#000">ZGŁOSZONA</button>
+<button onclick="setStatus('niez')" style="background:#000;color:#fff">NIEZGŁ.</button>
+<button onclick="setStatus('omow')" style="background:#888;color:#fff">OMÓW</button>
 </div>
 
-<input id="m-room" placeholder="Pomieszczenie">
-<textarea id="m-desc" placeholder="Opis usterki"></textarea>
-<input id="m-norm" placeholder="Norma / uwagi">
-
-<div class="modal-buttons">
-<button style="background:var(--orange)" onclick="setStatus('rep')">ZGŁOSZONA</button>
-<button style="background:#000" onclick="setStatus('nrep')">NIEZGŁOSZONA</button>
-<button style="background:#777" onclick="setStatus('none')">DO OMÓWIENIA</button>
-</div>
-
-<button style="width:100%;margin-top:8px;background:#c0392b;color:#fff;border:0;padding:8px;border-radius:6px;font-weight:700"
-onclick="deleteDot()">USUŃ</button>
-
+<button onclick="deleteDot()" style="margin-top:10px;background:#e11d48;color:#fff;width:100%">USUŃ</button>
 </div>
 
 <script>
-let state={
-meta:{inv:'',adr:'',cli:'',date:''},
-floors:[]
-}
-
-let activeFloor=0
-let activeDot=null
-
-window.onbeforeunload=e=>{
-e.preventDefault()
-e.returnValue=''
-}
+let data={meta:{inv:'',adr:'',cli:'',date:''},img:'',floors:[],activeRoom:''}
+let af=0,ad=null
+let globalId=1
 
 function newProject(){
-if(confirm("Utworzyć nowy projekt?")){
-state={meta:{inv:'',adr:'',cli:'',date:''},floors:[]}
+if(!confirm("Nowy projekt?"))return
+data={meta:{inv:'',adr:'',cli:'',date:''},img:'',floors:[],activeRoom:''}
+globalId=1
 addFloor()
 render()
 }
-}
 
 function addFloor(){
-state.floors.push({name:"Kondygnacja "+(state.floors.length+1),plan:'',defects:[]})
-activeFloor=state.floors.length-1
+data.floors.push({name:"Kondygnacja "+(data.floors.length+1),plan:'',def:[]})
+af=data.floors.length-1
 }
 
-function uploadPlan(){
+function addPlan(){
 let i=document.createElement('input')
-i.type='file'
-i.accept='image/*'
+i.type='file';i.accept='image/*'
 i.onchange=e=>{
 let r=new FileReader()
-r.onload=ev=>{
-state.floors[activeFloor].plan=ev.target.result
-render()
-}
+r.onload=ev=>{data.floors[af].plan=ev.target.result;render()}
 r.readAsDataURL(e.target.files[0])
 }
 i.click()
 }
 
 function addDot(e){
-let f=state.floors[activeFloor]
-if(!f.plan){uploadPlan();return}
+let f=data.floors[af]
+if(!f.plan){addPlan();return}
 let r=e.currentTarget.getBoundingClientRect()
-
-f.defects.push({
+let d={
+id:globalId++,
 x:(e.clientX-r.left)/r.width*100,
 y:(e.clientY-r.top)/r.height*100,
-room:'',
+room:data.activeRoom||'',
 desc:'',
-norm:'',
-status:'none',
-img:''
-})
-
-render()
-openModal(f.defects.length-1)
+img:'',
+status:'omow'
+}
+f.def.push(d)
+openModal(f.def.length-1)
 }
 
 function openModal(i){
-activeDot=i
-let d=state.floors[activeFloor].defects[i]
-document.getElementById('m-room').value=d.room
-document.getElementById('m-desc').value=d.desc
-document.getElementById('m-norm').value=d.norm
-document.querySelector('.photoBox').innerHTML=d.img?'<img src="'+d.img+'">':'DODAJ ZDJĘCIE'
-document.querySelector('.modal-bg').style.display='block'
-document.querySelector('.modal').style.display='block'
+ad=i
+let d=data.floors[af].def[i]
+mTitle.innerText="PUNKT "+d.id
+mRoom.value=d.room
+mDesc.value=d.desc
+document.querySelector('.photo').innerHTML=d.img?`<img src="${d.img}">`:"<small>DODAJ</small>"
+ov.style.display=modal.style.display='block'
+setTimeout(()=>mDesc.focus(),200)
 }
 
 function closeModal(){
-if(activeDot!==null){
-let d=state.floors[activeFloor].defects[activeDot]
-d.room=document.getElementById('m-room').value
-d.desc=document.getElementById('m-desc').value
-d.norm=document.getElementById('m-norm').value
-}
-activeDot=null
-document.querySelector('.modal-bg').style.display='none'
-document.querySelector('.modal').style.display='none'
+if(ad===null)return
+let d=data.floors[af].def[ad]
+d.room=mRoom.value
+d.desc=mDesc.value
+data.activeRoom=d.room
+ov.style.display=modal.style.display='none'
+ad=null
 render()
 }
 
 function setStatus(s){
-state.floors[activeFloor].defects[activeDot].status=s
+data.floors[af].def[ad].status=s
 closeModal()
 }
 
 function deleteDot(){
-if(confirm("Usunąć usterkę?")){
-state.floors[activeFloor].defects.splice(activeDot,1)
+if(!confirm("Usunąć punkt?"))return
+data.floors[af].def.splice(ad,1)
 closeModal()
 }
-}
 
-function uploadImg(){
+function addPhoto(){
 let i=document.createElement('input')
-i.type='file'
-i.accept='image/*'
+i.type='file';i.accept='image/*'
 i.onchange=e=>{
 let r=new FileReader()
-r.onload=ev=>{
-state.floors[activeFloor].defects[activeDot].img=ev.target.result
-openModal(activeDot)
-}
+r.onload=ev=>{data.floors[af].def[ad].img=ev.target.result;openModal(ad)}
 r.readAsDataURL(e.target.files[0])
 }
 i.click()
 }
 
-function render(){
-let app=document.getElementById('app')
-app.innerHTML=`
-
-<div class="page">
-<input placeholder="Nazwa inwestycji" value="${state.meta.inv}" oninput="state.meta.inv=this.value">
-<input placeholder="Adres" value="${state.meta.adr}" oninput="state.meta.adr=this.value">
-<input placeholder="Zamawiający" value="${state.meta.cli}" oninput="state.meta.cli=this.value">
-<input type="date" value="${state.meta.date}" oninput="state.meta.date=this.value">
-</div>
-
-<div class="page">
-<select onchange="activeFloor=this.value;render()">
-${state.floors.map((f,i)=>`<option value="${i}" ${i==activeFloor?'selected':''}>${f.name}</option>`).join('')}
-</select>
-
-<div class="planBox" onclick="addDot(event)">
-${state.floors[activeFloor].plan?`<img src="${state.floors[activeFloor].plan}">`:'DODAJ RZUT'}
-${state.floors[activeFloor].defects.map((d,i)=>`
-<div class="dot ${d.status}" style="left:${d.x}%;top:${d.y}%"
-onclick="event.stopPropagation();openModal(${i})">${i+1}</div>
-`).join('')}
-</div>
-
-<div class="counter">
-<span>Łącznie: ${state.floors[activeFloor].defects.length}</span>
-<span>Zgłoszone: ${state.floors[activeFloor].defects.filter(x=>x.status=='rep').length}</span>
-<span>Niezgłoszone: ${state.floors[activeFloor].defects.filter(x=>x.status=='nrep').length}</span>
-<span>Do omówienia: ${state.floors[activeFloor].defects.filter(x=>x.status=='none').length}</span>
-</div>
-</div>
-`
-}
-
-function saveJSON(){
+function save(){
 let a=document.createElement('a')
-a.href=URL.createObjectURL(new Blob([JSON.stringify(state)],{type:'application/json'}))
-a.download=(state.meta.inv||'raport')+'.json'
+a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}))
+a.download=(data.meta.inv||'raport')+'.json'
 a.click()
 }
 
-function loadJSON(){
-let l=document.getElementById('loader')
-l.onchange=e=>{
+function load(){
+loader.onchange=e=>{
 let r=new FileReader()
-r.onload=ev=>{
-state=JSON.parse(ev.target.result)
-render()
-}
+r.onload=ev=>{data=JSON.parse(ev.target.result);render()}
 r.readAsText(e.target.files[0])
 }
-l.click()
+loader.click()
+}
+
+function toggleTheme(){
+document.body.classList.toggle('dark')
+}
+
+function render(){
+app.innerHTML=`
+<div class="page">
+<input placeholder="Nazwa inwestycji" value="${data.meta.inv}" oninput="data.meta.inv=this.value">
+<input placeholder="Adres" value="${data.meta.adr}" oninput="data.meta.adr=this.value">
+<input placeholder="Zamawiający" value="${data.meta.cli}" oninput="data.meta.cli=this.value">
+<input type="date" value="${data.meta.date}" oninput="data.meta.date=this.value">
+</div>
+
+<div class="page">
+<select onchange="af=this.value;render()">
+${data.floors.map((f,i)=>`<option value="${i}" ${i==af?'selected':''}>${f.name}</option>`).join('')}
+</select>
+
+<input placeholder="Aktywne pomieszczenie" value="${data.activeRoom}" oninput="data.activeRoom=this.value">
+
+<div class="plan" onclick="addDot(event)">
+${data.floors[af].plan?`<img src="${data.floors[af].plan}">`:"DODAJ RZUT"}
+${data.floors[af].def.map((d,i)=>`<div class="dot ${d.status}" style="left:${d.x}%;top:${d.y}%" onclick="event.stopPropagation();openModal(${i})">${d.id}</div>`).join('')}
+</div>
+
+<div class="counter">
+<span>SUMA: ${data.floors[af].def.length}</span>
+<span>ZGŁ: ${data.floors[af].def.filter(x=>x.status=='zgl').length}</span>
+<span>NIEZGŁ: ${data.floors[af].def.filter(x=>x.status=='niez').length}</span>
+<span>OMÓW: ${data.floors[af].def.filter(x=>x.status=='omow').length}</span>
+</div>
+</div>
+`
 }
 
 addFloor()
@@ -345,6 +222,5 @@ if('serviceWorker' in navigator){
 navigator.serviceWorker.register('sw.js')
 }
 </script>
-
 </body>
 </html>

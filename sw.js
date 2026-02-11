@@ -1,11 +1,13 @@
-const CACHE_NAME='raport-pro-v1';
-const ASSETS=['./','./index.html','./manifest.json'];
+self.addEventListener('install', e => {
+ e.waitUntil(
+  caches.open('raport-pro').then(cache => {
+   return cache.addAll(['./','index.html','manifest.json'])
+  })
+ )
+})
 
-self.addEventListener('install',e=>{
-e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)));
-self.skipWaiting();
-});
-
-self.addEventListener('fetch',e=>{
-e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
-});
+self.addEventListener('fetch', e => {
+ e.respondWith(
+  caches.match(e.request).then(r => r || fetch(e.request))
+ )
+})
