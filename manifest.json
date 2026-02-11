@@ -1,9 +1,0 @@
-{
-  "short_name": "Raporty v32",
-  "name": "PR RAPORTY v32",
-  "start_url": "./index.html",
-  "background_color": "#ffffff",
-  "display": "standalone",
-  "theme_color": "#2c3e50",
-  "orientation": "portrait-primary"
-}
