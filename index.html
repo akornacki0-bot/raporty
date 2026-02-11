@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>SYSTEM RAPORTOWANIA v19.23</title>
+    <title>SYSTEM RAPORTOWANIA PRO v19.24</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
     <style>
@@ -10,32 +10,34 @@
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-top: 110px; }
         
-        /* UI */
+        /* Toolbars */
         .toolbar { position: fixed; top: 0; left: 0; width: 100%; height: 50px; background: var(--main); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; z-index: 9999; }
         .filter-bar { position: fixed; top: 50px; left: 0; width: 100%; height: 55px; background: #ecf0f1; display: flex; align-items: center; justify-content: center; gap: 5px; z-index: 9998; border-bottom: 1px solid #ddd; }
         .btn { padding: 8px 12px; border: none; cursor: pointer; font-weight: 600; border-radius: 5px; font-size: 11px; text-transform: uppercase; color: #fff; }
         
-        /* Karty PDF */
-        .page { width: 210mm; min-height: 296mm; background: #fff; margin: 0 auto 20px; padding: 15mm; position: relative; page-break-after: always; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header-info { display: flex; justify-content: space-between; font-size: 10px; color: #7f8c8d; border-bottom: 1px solid #eee; margin-bottom: 10px; }
+        /* Pages */
+        .page { width: 210mm; min-height: 296mm; background: #fff; margin: 0 auto 20px; padding: 15mm; position: relative; page-break-after: always; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .header-info { display: flex; justify-content: space-between; font-size: 10px; color: #7f8c8d; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; }
+        .footer-info { position: absolute; bottom: 10mm; right: 15mm; font-size: 9px; color: #bdc3c7; }
         
-        /* Plan i kropki */
+        /* Plan & Dots */
         .plan-wrapper { width: 100%; height: 180mm; background: #fafafa; border: 1px solid #ddd; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .plan-img { transition: transform 0.3s; max-width: 95%; max-height: 95%; }
+        .plan-img { transition: transform 0.3s; max-width: 95%; max-height: 95%; object-fit: contain; }
         .rot-90 { transform: rotate(90deg); } .rot-180 { transform: rotate(180deg); } .rot-270 { transform: rotate(270deg); }
-        .dot { position: absolute; width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; color: #fff; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); font-weight: bold; font-size: 12px; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .dot { position: absolute; width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; color: #fff; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); font-weight: bold; font-size: 12px; z-index: 100; cursor: pointer; }
 
-        /* Checklisty */
+        /* Checklist PDF Styling */
         .room-section { margin-top: 15px; border: 1px solid #eee; border-radius: 5px; break-inside: avoid; }
         .room-title { background: #2c3e50; color: #fff; padding: 8px; font-weight: bold; }
-        .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 10px; }
-        .check-item { font-size: 11px; display: flex; align-items: center; gap: 5px; }
-        .box { width: 12px; height: 12px; border: 1px solid #333; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .check-cat-pdf { font-size: 11px; font-weight: bold; margin: 8px 10px 3px 10px; color: #e67e22; text-transform: uppercase; border-bottom: 1px solid #f1f1f1; }
+        .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 5px 10px 10px 10px; }
+        .check-item-pdf { font-size: 10px; display: flex; align-items: center; gap: 5px; }
+        .box { width: 11px; height: 11px; border: 1px solid #333; display: flex; align-items: center; justify-content: center; font-size: 9px; }
 
         /* Modal */
-        #ov { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; }
+        #ov { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; }
         #modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border-radius: 10px; z-index: 10001; width: 95%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-        .modal-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; font-family: inherit; }
+        .modal-field { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
         
         .c-rep { background: var(--rep); } .c-nrep { background: var(--nrep); } .c-none { background: var(--none); }
         @media print { .no-print { display: none !important; } .page { margin: 0; box-shadow: none; } body { padding: 0; } }
@@ -45,122 +47,137 @@
 
 <div class="toolbar no-print">
     <button class="btn" style="background:#27ae60" onclick="addFloor()">+ Piętro</button>
-    <button class="btn" style="background:#2980b9" onclick="exportData()">Zapisz</button>
+    <button class="btn" style="background:#2980b9" onclick="exportData()">Zapisz Plik</button>
     <button class="btn" style="background:#e67e22" onclick="document.getElementById('import-file').click()">Wczytaj</button>
     <button class="btn" style="background:#8e44ad" onclick="openSettings()">Ustawienia Listy</button>
     <button class="btn" style="background:#e74c3c" onclick="window.print()">Generuj PDF</button>
 </div>
 
 <div class="filter-bar no-print">
-    <input id="f-room" style="padding:5px; width:30%;" placeholder="Pokój..." oninput="render()">
-    <input id="f-text" style="padding:5px; width:30%;" placeholder="Szukaj..." oninput="render()">
+    <input id="f-room" class="modal-field" style="width:30%; margin:0;" placeholder="Pokój..." oninput="render()">
+    <input id="f-text" class="modal-field" style="width:30%; margin:0;" placeholder="Szukaj..." oninput="render()">
 </div>
 
 <input type="file" id="import-file" style="display:none" onchange="importData(event)">
 <div id="ov" onclick="closeAllModals()"></div>
 
 <div id="modal">
-    <h3 id="m-title" style="margin-top:0">Edytuj Punkt</h3>
+    <h3 id="m-title" style="margin-top:0">PUNKT</h3>
     <label style="font-size:11px; font-weight:bold;">POMIESZCZENIE:</label>
-    <input id="m-room" class="modal-field" list="room-list" onchange="updateData('room', this.value)">
+    <input id="m-room" class="modal-field" list="room-list" onchange="updateActiveData('room', this.value)">
     
     <label style="font-size:11px; font-weight:bold;">ZDJĘCIE USTERKI:</label>
-    <div id="m-photo-box" style="width:100%; height:120px; background:#eee; display:flex; justify-content:center; align-items:center; cursor:pointer; margin-bottom:10px; overflow:hidden;" onclick="uploadImg('report')">Kliknij by dodać</div>
+    <div id="m-photo-box" style="width:100%; height:150px; background:#eee; display:flex; justify-content:center; align-items:center; cursor:pointer; margin-bottom:10px; overflow:hidden;" onclick="uploadImg('report')">Kliknij by dodać</div>
 
-    <label style="font-size:11px; font-weight:bold;">OPIS / UWAGI:</label>
-    <textarea id="m-desc" class="modal-field" style="height:80px;" oninput="updateData('desc', this.value)"></textarea>
+    <label style="font-size:11px; font-weight:bold;">OPIS USTERKI:</label>
+    <textarea id="m-desc" class="modal-field" style="height:70px;" oninput="updateActiveData('desc', this.value)"></textarea>
 
-    <label style="font-size:11px; font-weight:bold;">ODHACZ ELEMENTY (Checklista):</label>
-    <div id="m-checklist-area" style="background:#f9f9f9; padding:10px; border-radius:5px; border:1px solid #ddd; max-height:150px; overflow-y:auto;"></div>
+    <label style="font-size:11px; font-weight:bold;">CHECKLISTA DLA POMIESZCZENIA:</label>
+    <div id="m-checklist-area" style="background:#f9f9f9; padding:10px; border-radius:5px; border:1px solid #ddd; max-height:200px; overflow-y:auto;"></div>
 
     <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-top:15px;">
-        <button class="btn c-rep" onclick="updateData('status', 'reported'); closeAllModals()">Zgłoszona</button>
-        <button class="btn c-nrep" onclick="updateData('status', 'not_reported'); closeAllModals()">Niezgłosz.</button>
-        <button class="btn c-none" onclick="updateData('status', 'to_discuss'); closeAllModals()">Uwaga</button>
+        <button class="btn c-rep" onclick="updateActiveData('status', 'reported'); closeAllModals()">ZGŁOSZ.</button>
+        <button class="btn c-nrep" onclick="updateActiveData('status', 'not_reported'); closeAllModals()">NIEZGŁ.</button>
+        <button class="btn c-none" onclick="updateActiveData('status', 'to_discuss'); closeAllModals()">UWAGI</button>
     </div>
-    <button class="btn" style="background:#c0392b; width:100%; margin-top:10px;" onclick="deletePoint()">Usuń Punkt</button>
+    <button class="btn" style="background:#c0392b; width:100%; margin-top:10px;" onclick="deletePoint()">USUŃ PUNKT</button>
 </div>
 
-<div id="settings-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:20px; z-index:10002; width:90%; max-width:400px; border-radius:10px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+<div id="settings-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; padding:20px; z-index:10002; width:90%; max-width:450px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.5);">
     <h3>Ustawienia Checklisty</h3>
-    <p style="font-size:11px;">Wpisz elementy oddzielone przecinkami:</p>
-    <textarea id="set-items" class="modal-field" style="height:150px;"></textarea>
-    <button class="btn" style="background:#27ae60; width:100%;" onclick="saveSettings()">Zapisz</button>
+    <p style="font-size:11px;">Wpisz kategorie i elementy w formacie:<br><b>Kategoria: Element1, Element2</b> (każda kategoria w nowej linii)</p>
+    <textarea id="set-checklist-text" class="modal-field" style="height:250px; font-family:monospace; font-size:12px;"></textarea>
+    <button class="btn" style="background:#27ae60; width:100%;" onclick="saveSettings()">Zapisz Konfigurację</button>
     <button class="btn" style="background:#95a5a6; width:100%; margin-top:5px;" onclick="document.getElementById('settings-modal').style.display='none'">Anuluj</button>
 </div>
 
 <div id="app"></div>
-
 <datalist id="room-list"></datalist>
 
 <script>
-    let config = JSON.parse(localStorage.getItem('cfg_v23')) || {
-        rooms: ['Salon', 'Kuchnia', 'Łazienka', 'Sypialnia', 'Balkon'],
-        checkItems: ['Kąty 90', 'Płaszczyzny', 'Pionowość', 'Rysy/Uszkodzenia', 'Wilgotność', 'Instalacje', 'Stolarka'],
+    let config = JSON.parse(localStorage.getItem('inspect_cfg_v24')) || {
+        rooms: ['Salon', 'Kuchnia', 'Łazienka', 'Przedpokój'],
+        checklist: {
+            "Ściany": ["Kąty", "Płaszczyzny", "Tynki"],
+            "Posadzki": ["Poziom", "Dylatacje"],
+            "Stolarka": ["Rysy", "Regulacja"]
+        },
         logo: ''
     };
 
     let state = { meta: { inv:'', adr:'', date:'', cli:'', mainImg:'' }, floors: [] };
     let active = { f: null, d: null };
 
-    function updateData(field, val) {
-        if(active.f===null) return;
+    function updateActiveData(field, val) {
+        if(active.f === null) return;
         state.floors[active.f].defects[active.d][field] = val;
-        if(field === 'room' && val && !config.rooms.includes(val)) {
+        if(field==='room' && val && !config.rooms.includes(val)) {
             config.rooms.push(val); 
-            localStorage.setItem('cfg_v23', JSON.stringify(config));
-            updateDatalist();
+            localStorage.setItem('inspect_cfg_v24', JSON.stringify(config));
+            updateDatalists();
         }
     }
 
-    function toggleCheck(item) {
+    function toggleCheck(cat, item) {
         let d = state.floors[active.f].defects[active.d];
         if(!d.checks) d.checks = {};
-        d.checks[item] = !d.checks[item];
+        const key = `${cat}:${item}`;
+        d.checks[key] = !d.checks[key];
         renderModalChecklist(d);
     }
 
     function openModal(fi, di) {
         active = { f: fi, d: di }; let d = state.floors[fi].defects[di];
+        document.getElementById('m-title').innerText = `PUNKT ${di+1}`;
         document.getElementById('m-room').value = d.room || '';
         document.getElementById('m-desc').value = d.desc || '';
         document.getElementById('m-photo-box').innerHTML = d.img ? `<img src="${d.img}" style="height:100%">` : 'Dodaj zdjęcie';
         renderModalChecklist(d);
         document.getElementById('ov').style.display = 'block';
         document.getElementById('modal').style.display = 'block';
-        setTimeout(() => document.getElementById('m-desc').focus(), 200);
+        setTimeout(() => document.getElementById('m-desc').focus(), 250);
     }
 
     function renderModalChecklist(d) {
-        const area = document.getElementById('m-checklist-area');
-        area.innerHTML = config.checkItems.map(item => `
-            <div style="display:flex; align-items:center; gap:10px; padding:5px 0; border-bottom:1px solid #eee; cursor:pointer;" onclick="toggleCheck('${item}')">
-                <input type="checkbox" ${d.checks && d.checks[item] ? 'checked' : ''}>
-                <span>${item}</span>
-            </div>
-        `).join('');
+        const area = document.getElementById('m-checklist-area'); area.innerHTML = '';
+        for (const [cat, items] of Object.entries(config.checklist)) {
+            area.innerHTML += `<div style="font-weight:bold; font-size:11px; margin-top:8px; color:#e67e22;">${cat}</div>`;
+            items.forEach(item => {
+                const isChecked = d.checks && d.checks[`${cat}:${item}`];
+                area.innerHTML += `
+                    <div style="display:flex; align-items:center; gap:10px; padding:5px 0; border-bottom:1px solid #eee; cursor:pointer;" onclick="toggleCheck('${cat}', '${item}')">
+                        <input type="checkbox" ${isChecked?'checked':''}>
+                        <span style="font-size:13px;">${item}</span>
+                    </div>`;
+            });
+        }
     }
 
     function render() {
         const root = document.getElementById('app'); root.innerHTML = '';
         const fRoom = document.getElementById('f-room').value.toLowerCase();
         const fText = document.getElementById('f-text').value.toLowerCase();
+        let pageIdx = 1;
 
-        // Strona 1: Okładka
-        const cover = document.createElement('div'); cover.className = 'page';
-        cover.innerHTML = `
-            <div style="text-align:center;">
-                <div style="height:40mm; display:flex; justify-content:center; align-items:center; cursor:pointer; border:1px dashed #ccc;" onclick="uploadImg('logo')">
-                    ${config.logo ? `<img src="${config.logo}" style="max-height:100%">` : 'KLIKNIJ BY DODAĆ LOGO'}
-                </div>
-                <h1 style="margin:40px 0;">PROTOKÓŁ ODBIORU TECHNICZNEGO</h1>
-                <div style="text-align:left; max-width:400px; margin: 0 auto;">
+        const createPage = () => {
+            const p = document.createElement('div'); p.className = 'page';
+            p.innerHTML = `<div class="header-info"><span>${state.meta.inv}</span>${config.logo?`<img src="${config.logo}" style="max-height:10mm">`:''}</div>
+                           <div class="footer-info">STRONA ${pageIdx++}</div>`;
+            return p;
+        };
+
+        // 1. OKŁADKA
+        const cover = createPage();
+        cover.innerHTML += `
+            <div style="text-align:center; flex-grow:1; display:flex; flex-direction:column; justify-content:center;">
+                <h1 style="font-size:32px;">PROTOKÓŁ ODBIORU</h1>
+                <div style="max-width:400px; margin:0 auto; width:100%;">
                     <input class="modal-field" placeholder="Inwestycja" value="${state.meta.inv}" oninput="state.meta.inv=this.value">
                     <input class="modal-field" placeholder="Adres" value="${state.meta.adr}" oninput="state.meta.adr=this.value">
                     <input class="modal-field" type="date" value="${state.meta.date}" oninput="state.meta.date=this.value">
                     <input class="modal-field" placeholder="Klient" value="${state.meta.cli}" oninput="state.meta.cli=this.value">
                 </div>
-                <div style="width:100%; height:100mm; background:#f0f0f0; margin-top:20px; display:flex; justify-content:center; align-items:center; cursor:pointer; overflow:hidden;" onclick="uploadImg('main')">
+                <div style="width:100%; height:80mm; background:#eee; margin-top:20px; display:flex; justify-content:center; align-items:center; cursor:pointer; overflow:hidden;" onclick="uploadImg('main')">
                     ${state.meta.mainImg ? `<img src="${state.meta.mainImg}" style="width:100%; height:100%; object-fit:cover;">` : 'KLIKNIJ BY DODAĆ ZDJĘCIE INWESTYCJI'}
                 </div>
             </div>`;
@@ -168,37 +185,35 @@
 
         let roomChecks = {};
 
+        // 2. PIĘTRA I PUNKTY
         state.floors.forEach((f, fi) => {
-            // Strona: Rzut
-            const fPage = document.createElement('div'); fPage.className = 'page';
-            fPage.innerHTML = `
-                <div class="header-info"><span>${state.meta.inv}</span><span>${f.name}</span></div>
+            const fPage = createPage();
+            fPage.innerHTML += `
+                <h2>${f.name}</h2>
                 <div class="plan-wrapper" onclick="addDot(event, ${fi})">
-                    ${f.plan ? `<img src="${f.plan}" class="plan-img rot-${f.rotation || 0}">` : 'WGRAJ RZUT'}
+                    ${f.plan ? `<img src="${f.plan}" class="plan-img rot-${f.rotation || 0}">` : 'KLIKNIJ BY WGRAĆ RZUT'}
                     ${f.defects.map((d, di) => `
                         <div class="dot ${d.status==='reported'?'c-rep':(d.status==='not_reported'?'c-nrep':'c-none')}" 
-                        style="left:${d.x}%; top:${d.y}%;" onclick="event.stopPropagation(); openModal(${fi},${di})">${di+1}</div>
+                             style="left:${d.x}%; top:${d.y}%;" onclick="event.stopPropagation(); openModal(${fi},${di})">${di+1}</div>
                     `).join('')}
                 </div>
-                <div class="no-print" style="margin-top:10px;">
-                    <button class="btn" style="background:#333" onclick="rotate(${fi})">OBRÓĆ RZUT</button>
+                <div class="no-print" style="margin-top:10px; display:flex; gap:10px;">
+                    <button class="btn" style="background:#34495e" onclick="rotate(${fi})">OBRÓĆ RZUT</button>
                     <button class="btn" style="background:#c0392b" onclick="deleteFloor(${fi})">USUŃ PIĘTRO</button>
                 </div>`;
             root.appendChild(fPage);
 
-            // Strony: Usterki
             f.defects.forEach((d, di) => {
                 const rName = d.room || "Inne";
                 if(!roomChecks[rName]) roomChecks[rName] = {};
                 if(d.checks) { for(let k in d.checks) if(d.checks[k]) roomChecks[rName][k] = true; }
 
-                if((d.room||'').toLowerCase().includes(fRoom) && (d.desc||'').toLowerCase().includes(fText)) {
-                    const dPage = document.createElement('div'); dPage.className = 'page';
-                    dPage.innerHTML = `
-                        <div class="header-info"><span>PUNKT ${di+1}</span><span>${d.room}</span></div>
-                        <h3>${d.room} - ${d.status === 'reported' ? 'Zgłoszono' : 'Uwagi'}</h3>
-                        <p style="font-size:16px; min-height:50px;">${d.desc || 'Brak opisu.'}</p>
-                        <div style="width:100%; height:120mm; background:#eee; display:flex; justify-content:center; align-items:center;">
+                if(rName.toLowerCase().includes(fRoom) && (d.desc||'').toLowerCase().includes(fText)) {
+                    const dPage = createPage();
+                    dPage.innerHTML += `
+                        <h3>PUNKT ${di+1}: ${d.room}</h3>
+                        <p style="font-size:16px; margin:20px 0;">${d.desc || 'Brak opisu.'}</p>
+                        <div style="flex-grow:1; background:#f9f9f9; display:flex; justify-content:center; align-items:center; overflow:hidden; border:1px solid #eee;">
                             ${d.img ? `<img src="${d.img}" style="max-width:100%; max-height:100%;">` : 'Brak zdjęcia'}
                         </div>`;
                     root.appendChild(dPage);
@@ -206,15 +221,19 @@
             });
         });
 
-        // Strona: Zbiorcza Checklista
-        const summaryPage = document.createElement('div'); summaryPage.className = 'page';
-        summaryPage.innerHTML = `<h2 style="text-align:center; border-bottom:2px solid #333;">PROTOKÓŁ WERYFIKACJI POMIESZCZEŃ</h2>`;
+        // 3. ZBIORCZA CHECKLISTA
+        const summaryPage = createPage();
+        summaryPage.innerHTML += `<h2 style="text-align:center; border-bottom:2px solid #333; padding-bottom:10px;">PROTOKÓŁ WERYFIKACJI</h2>`;
         for (const [room, checks] of Object.entries(roomChecks)) {
-            let html = `<div class="room-section"><div class="room-title">${room}</div><div class="check-grid">`;
-            config.checkItems.forEach(item => {
-                html += `<div class="check-item"><div class="box">${checks[item] ? '✓' : ''}</div>${item}</div>`;
-            });
-            summaryPage.innerHTML += html + `</div></div>`;
+            let html = `<div class="room-section"><div class="room-title">${room}</div>`;
+            for (const [cat, items] of Object.entries(config.checklist)) {
+                html += `<div class="check-cat-pdf">${cat}</div><div class="check-grid">`;
+                items.forEach(item => {
+                    html += `<div class="check-item-pdf"><div class="box">${checks[`${cat}:${item}`] ? '✓' : ''}</div><span>${item}</span></div>`;
+                });
+                html += `</div>`;
+            }
+            summaryPage.innerHTML += html + `</div>`;
         }
         root.appendChild(summaryPage);
     }
@@ -227,19 +246,15 @@
         render(); openModal(fi, di);
     }
 
-    function uploadImg(type, fi, di) {
+    function uploadImg(type, fi) {
         const i = document.createElement('input'); i.type='file'; i.accept='image/*';
         i.onchange = e => {
             const reader = new FileReader();
             reader.onload = ev => {
-                if(type==='logo') config.logo = ev.target.result;
+                if(type==='logo') { config.logo = ev.target.result; localStorage.setItem('inspect_cfg_v24', JSON.stringify(config)); }
                 else if(type==='main') state.meta.mainImg = ev.target.result;
                 else if(type==='plan') state.floors[fi].plan = ev.target.result;
-                else if(type==='report') {
-                    state.floors[active.f].defects[active.d].img = ev.target.result;
-                    document.getElementById('m-photo-box').innerHTML = `<img src="${ev.target.result}" style="height:100%">`;
-                }
-                localStorage.setItem('cfg_v23', JSON.stringify(config));
+                else if(type==='report') state.floors[active.f].defects[active.d].img = ev.target.result;
                 render();
             };
             reader.readAsDataURL(e.target.files[0]);
@@ -247,30 +262,45 @@
     }
 
     function rotate(fi) { state.floors[fi].rotation = ((state.floors[fi].rotation || 0) + 90) % 360; render(); }
-    function addFloor() { state.floors.push({ name: 'PIĘTRO '+(state.floors.length+1), plan:'', defects:[], rotation:0 }); render(); }
-    function deleteFloor(fi) { if(confirm("Usunąć piętro?")) { state.floors.splice(fi,1); render(); } }
+    function addFloor() { state.floors.push({ name:'PIĘTRO '+(state.floors.length+1), plan:'', defects:[], rotation:0 }); render(); }
+    function deleteFloor(fi) { if(confirm("Usunąć?")) { state.floors.splice(fi,1); render(); } }
     function deletePoint() { if(confirm("Usunąć punkt?")) { state.floors[active.f].defects.splice(active.d,1); closeAllModals(); } }
     function closeAllModals() { document.getElementById('ov').style.display='none'; document.getElementById('modal').style.display='none'; render(); }
-    function updateDatalist() { document.getElementById('room-list').innerHTML = config.rooms.map(r => `<option value="${r}">`).join(''); }
-    function openSettings() { document.getElementById('set-items').value = config.checkItems.join(', '); document.getElementById('settings-modal').style.display='block'; }
+    function updateDatalists() { document.getElementById('room-list').innerHTML = config.rooms.map(r => `<option value="${r}">`).join(''); }
+    
+    function openSettings() {
+        let text = "";
+        for (const [cat, items] of Object.entries(config.checklist)) { text += `${cat}: ${items.join(', ')}\n`; }
+        document.getElementById('set-checklist-text').value = text;
+        document.getElementById('settings-modal').style.display='block';
+    }
+
     function saveSettings() {
-        config.checkItems = document.getElementById('set-items').value.split(',').map(s => s.trim()).filter(s => s);
-        localStorage.setItem('cfg_v23', JSON.stringify(config));
+        const lines = document.getElementById('set-checklist-text').value.split('\n');
+        const newCheck = {};
+        lines.forEach(line => {
+            if(line.includes(':')) {
+                const [cat, items] = line.split(':');
+                newCheck[cat.trim()] = items.split(',').map(i => i.trim()).filter(i => i);
+            }
+        });
+        config.checklist = newCheck;
+        localStorage.setItem('inspect_cfg_v24', JSON.stringify(config));
         document.getElementById('settings-modal').style.display='none';
         render();
     }
+
     function exportData() {
-        const blob = new Blob([JSON.stringify(state)], {type:'application/json'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Raport.json`; a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(state)], {type:'application/json'}));
+        a.download = `Raport_${state.meta.inv || 'odbior'}.json`; a.click();
     }
     function importData(e) {
         const r = new FileReader(); r.onload = ev => { state = JSON.parse(ev.target.result); render(); };
         r.readAsText(e.target.files[0]);
     }
 
-    updateDatalist();
-    if(!state.floors.length) addFloor();
-    render();
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js'); }
+    updateDatalists(); if(!state.floors.length) addFloor(); render();
 </script>
 </body>
 </html>
