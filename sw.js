@@ -1,12 +1,6 @@
-const CACHE="raport-pro-v1";
-const FILES=["./","./index.html","./manifest.json"];
-
-self.addEventListener("install",e=>{
- e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)))
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open('v19.18').then(c => c.addAll(['./', 'index.html', 'manifest.json'])));
 });
-
-self.addEventListener("fetch",e=>{
- e.respondWith(
-  caches.match(e.request).then(r=>r||fetch(e.request))
- )
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });

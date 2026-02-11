@@ -1,161 +1,173 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Raport Odbioru PRO</title>
+    <meta charset="UTF-8">
+    <title>SYSTEM RAPORTOWANIA v19.18</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        :root { --rep: #e67e22; --nrep: #2c3e50; --none: #95a5a6; --main: #1a252f; --bg: #f8f9fa; }
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact; touch-action: manipulation; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-top: 55px; color: #333; }
+        
+        .toolbar { position: fixed; top: 0; left: 0; width: 100%; height: 50px; background: var(--main); color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; z-index: 9999; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .btn { padding: 8px 12px; border: none; cursor: pointer; font-weight: 600; border-radius: 5px; font-size: 10px; text-transform: uppercase; color: #fff; }
+        
+        .page { width: 210mm; min-height: 296mm; background: #fff; margin: 0 auto 20px; padding: 15mm; position: relative; display: flex; flex-direction: column; page-break-after: always; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .header-info { font-size: 9px; color: #95a5a6; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; height: 10mm; }
+        
+        .logo-box { height: 35mm; width: 100%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px dashed #ccc; margin-bottom: 10px; }
+        .logo-box img { max-height: 100%; max-width: 100%; }
 
-<link rel="manifest" href="manifest.json">
+        .plan-wrapper { width: 100%; height: 180mm; background: #fafafa; border: 1px solid #e1e1e1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .plan-img { transition: transform 0.2s; max-width: 95%; max-height: 95%; pointer-events: none; }
+        .rot-90 { transform: rotate(90deg); } .rot-180 { transform: rotate(180deg); } .rot-270 { transform: rotate(270deg); }
 
-<style>
-body{margin:0;font-family:system-ui;background:#f5f6f7}
-header{background:#1f2937;color:#fff;padding:10px;text-align:center;font-weight:700}
-.toolbar{display:flex;gap:8px;padding:8px;background:#111;color:#fff}
-.toolbar button{flex:1;padding:10px;border:0;border-radius:6px;background:#2563eb;color:#fff;font-weight:700}
-.page{background:#fff;margin:8px;padding:10px;border-radius:10px}
-input,textarea,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:1px solid #ccc}
-.planBox{position:relative;background:#eee;height:60vh;border-radius:10px;overflow:hidden}
-.planBox img{width:100%;height:100%;object-fit:contain}
-.dot{position:absolute;width:28px;height:28px;border-radius:50%;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%)}
-.rep{background:#f59e0b}
-.nrep{background:#000}
-.none{background:#9ca3af}
-.counter{display:flex;gap:10px;justify-content:space-around;padding:8px;font-size:13px}
-.hidden{display:none}
-</style>
+        .dot { position: absolute; width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid #fff; color: #fff; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); font-weight: 800; font-size: 11px; z-index: 100; box-shadow: 0 3px 8px rgba(0,0,0,0.3); }
+        .c-rep { background: var(--rep); } .c-nrep { background: var(--nrep); } .c-none { background: var(--none); }
+
+        .grid-table { width: 100%; border-collapse: separate; border-spacing: 0 15px; }
+        .grid-table td { width: 100%; height: 120mm; border: 1px solid #edf2f7; border-radius: 8px; padding: 15px; vertical-align: top; background: #fff; }
+        
+        .q-photo { width: 100%; height: 85mm; background: #f8f9fa; border-radius: 6px; display: flex; justify-content: center; align-items: center; margin-top: 10px; overflow: hidden; border: 1px solid #eee; }
+        .q-photo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        #ov { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; }
+        #modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; border-radius: 12px; width: 95%; max-width: 450px; z-index: 10001; max-height: 90vh; overflow-y: auto; }
+        .modal-field { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+
+        @media print { .no-print { display: none !important; } .page { margin: 0; box-shadow: none; border: none; } body { padding: 0; } }
+    </style>
 </head>
-
 <body>
 
-<header>ODBIÓR TECHNICZNY</header>
-
-<div class="toolbar">
-<button onclick="newProject()">NOWY</button>
-<button onclick="saveJSON()">ZAPISZ</button>
-<button onclick="loadJSON()">WCZYTAJ</button>
-<button onclick="window.print()">PDF</button>
+<div class="toolbar no-print">
+    <button class="btn" style="background:#27ae60" onclick="addFloor()">+ Kondygnacja</button>
+    <button class="btn" style="background:#2980b9" onclick="exportData()">Zapisz JSON</button>
+    <button class="btn" style="background:#e67e22" onclick="document.getElementById('import-file').click()">Wczytaj</button>
+    <button class="btn" style="background:#e74c3c" onclick="window.print()">PDF</button>
 </div>
+<input type="file" id="import-file" style="display:none" onchange="importData(event)">
+
+<div id="ov" onclick="closeModal()"></div>
+<div id="modal"></div>
 
 <div id="app"></div>
 
-<input type="file" id="loader" hidden>
-
 <script>
-let data={meta:{inv:'',adr:'',cli:'',date:''},logo:'',img:'',floors:[],rooms:["Salon","Kuchnia","Łazienka","Sypialnia","Korytarz"]}
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
-let activeFloor=0
+    const DATABASE = {
+        "Tynki": { "Odchyłka od płaszczyzny (3mm)": "Norma PN-B-10110", "Brak kąta": "Norma PN-B-10110", "Pęknięcie tynku": "Naprawa systemowa" },
+        "Stolarka": { "Rysa na szybie": "Wytyczne Instytutu Szkła", "Uszkodzenie ramy": "Mechaniczne", "Regulacja okna": "Okucia do nastawy" },
+        "Posadzki": { "Nierówność (lustro)": "PN-EN 13813", "Dylatacja": "Błąd wykonawczy" }
+    };
+    const ROOMS = ["Salon", "Kuchnia", "Łazienka", "Sypialnia", "Przedpokój", "Balkon"];
 
-function newProject(){
- if(confirm("Utworzyć nowy projekt?")) data={meta:{inv:'',adr:'',cli:'',date:''},logo:'',img:'',floors:[],rooms:data.rooms}
- addFloor()
- render()
-}
+    let state = { meta: { inv:'', cli:'', adr:'', date:'' }, logo: '', mainImg: '', floors: [] };
+    let active = { f: null, d: null };
 
-function addFloor(){
- data.floors.push({name:"Kondygnacja "+(data.floors.length+1),plan:'',def:[]})
- activeFloor=data.floors.length-1
-}
+    function uploadImg(type, fi, di) {
+        const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*';
+        i.onchange = e => {
+            const r = new FileReader();
+            r.onload = ev => {
+                if(type==='logo') state.logo = ev.target.result;
+                else if(type==='main') state.mainImg = ev.target.result;
+                else if(type==='plan') state.floors[fi].plan = ev.target.result;
+                else if(type==='report') state.floors[fi].defects[di].img = ev.target.result;
+                render(); if(type==='report') openModal(fi, di);
+            };
+            r.readAsDataURL(e.target.files[0]);
+        };
+        i.click();
+    }
 
-function addDot(e){
- let f=data.floors[activeFloor]
- if(!f.plan){uploadPlan();return}
- let r=e.currentTarget.getBoundingClientRect()
- f.def.push({
-  x:(e.clientX-r.left)/r.width*100,
-  y:(e.clientY-r.top)/r.height*100,
-  room:data.rooms[0]||'',
-  desc:'',
-  norm:'',
-  status:'none',
-  img:''
- })
- render()
-}
+    function addFloor() { state.floors.push({ name: 'Poziom ' + (state.floors.length + 1), plan: '', defects: [], rotation: 0 }); render(); }
 
-function uploadPlan(){
- let i=document.createElement('input')
- i.type='file';i.accept='image/*'
- i.onchange=e=>{
-  let r=new FileReader()
-  r.onload=ev=>{data.floors[activeFloor].plan=ev.target.result;render()}
-  r.readAsDataURL(e.target.files[0])
- }
- i.click()
-}
+    function addDot(e, fi) {
+        if (!state.floors[fi].plan) return uploadImg('plan', fi);
+        const r = e.currentTarget.getBoundingClientRect();
+        const di = state.floors[fi].defects.length;
+        state.floors[fi].defects.push({ x: ((e.clientX - r.left)/r.width)*100, y: ((e.clientY - r.top)/r.height)*100, room:'', desc: '', norm: '', status: 'reported', img: '' });
+        render(); openModal(fi, di);
+    }
 
-function editDot(fi,di){
- let d=data.floors[fi].def[di]
- let room=prompt("Pomieszczenie:",d.room)
- if(room!==null)d.room=room
- let desc=prompt("Opis:",d.desc)
- if(desc!==null)d.desc=desc
- let norm=prompt("Norma:",d.norm)
- if(norm!==null)d.norm=norm
- let st=prompt("Status: zgłoszona / niezgłoszona / omówienie","zgłoszona")
- d.status=st=="niezgłoszona"?"nrep":st=="zgłoszona"?"rep":"none"
- render()
-}
+    function openModal(fi, di) {
+        active = { f: fi, d: di }; const d = state.floors[fi].defects[di];
+        const m = document.getElementById('modal');
+        m.innerHTML = `
+            <h3>PUNKT NR ${di+1}</h3>
+            <div style="height:120px; background:#eee; margin-bottom:10px; overflow:hidden" onclick="uploadImg('report',${fi},${di})">
+                ${d.img ? `<img src="${d.img}" style="width:100%">` : 'DODAJ ZDJĘCIE'}
+            </div>
+            <select id="m-room" class="modal-field">
+                <option value="">Wybierz pomieszczenie</option>
+                ${ROOMS.map(r => `<option value="${r}" ${d.room===r?'selected':''}>${r}</option>`).join('')}
+            </select>
+            <select class="modal-field" onchange="const v=this.value.split('|'); document.getElementById('m-desc').value=v[0]; document.getElementById('m-norm').value=v[1]">
+                <option value="">Wybierz usterkę z bazy</option>
+                ${Object.keys(DATABASE).map(cat => `<optgroup label="${cat}">${Object.keys(DATABASE[cat]).map(u => `<option value="${u}|${DATABASE[cat][u]}">${u}</option>`).join('')}</optgroup>`).join('')}
+            </select>
+            <textarea id="m-desc" class="modal-field" placeholder="Opis">${d.desc}</textarea>
+            <input id="m-norm" class="modal-field" placeholder="Norma" value="${d.norm}">
+            <div style="display:flex; gap:5px; margin-bottom:10px">
+                <button class="btn c-rep" style="flex:1" onclick="setStatus('reported')">ZGŁ.</button>
+                <button class="btn c-nrep" style="flex:1" onclick="setStatus('not_reported')">NIEZGŁ.</button>
+            </div>
+            <button class="btn" style="background:#333; width:100%" onclick="savePoint()">ZAPISZ</button>
+        `;
+        document.getElementById('ov').style.display = 'block'; m.style.display = 'block';
+    }
 
-function render(){
- let app=document.getElementById('app')
- app.innerHTML=`
-<div class="page">
-<input placeholder="Nazwa inwestycji" value="${data.meta.inv}" oninput="data.meta.inv=this.value">
-<input placeholder="Adres" value="${data.meta.adr}" oninput="data.meta.adr=this.value">
-<input placeholder="Zamawiający" value="${data.meta.cli}" oninput="data.meta.cli=this.value">
-<input type="date" value="${data.meta.date}" oninput="data.meta.date=this.value">
-</div>
+    function setStatus(s) { state.floors[active.f].defects[active.d].status = s; }
+    function savePoint() {
+        const d = state.floors[active.f].defects[active.d];
+        d.room = document.getElementById('m-room').value;
+        d.desc = document.getElementById('m-desc').value;
+        d.norm = document.getElementById('m-norm').value;
+        closeModal();
+    }
 
-<div class="page">
-<div class="toolbar">
-<button onclick="addFloor()">+ PIĘTRO</button>
-</div>
-<select onchange="activeFloor=this.value;render()">
-${data.floors.map((f,i)=>`<option value="${i}" ${i==activeFloor?'selected':''}>${f.name}</option>`).join('')}
-</select>
-<div class="planBox" onclick="addDot(event)">
-${data.floors[activeFloor]?.plan?`<img src="${data.floors[activeFloor].plan}">`:"DODAJ RZUT"}
-${data.floors[activeFloor]?.def.map((d,i)=>`<div class="dot ${d.status}" style="left:${d.x}%;top:${d.y}%" onclick="event.stopPropagation();editDot(${activeFloor},${i})">${i+1}</div>`).join('')}
-</div>
-<div class="counter">
-<span>Łącznie: ${data.floors[activeFloor]?.def.length||0}</span>
-<span>Zgłoszone: ${data.floors[activeFloor]?.def.filter(x=>x.status=='rep').length||0}</span>
-<span>Niezgłoszone: ${data.floors[activeFloor]?.def.filter(x=>x.status=='nrep').length||0}</span>
-<span>Do omówienia: ${data.floors[activeFloor]?.def.filter(x=>x.status=='none').length||0}</span>
-</div>
-</div>
-`
-}
+    function closeModal() { document.getElementById('ov').style.display = 'none'; document.getElementById('modal').style.display = 'none'; render(); }
+    function exportData() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(state)], {type:'application/json'})); a.download='raport.json'; a.click(); }
+    function importData(e) { const r = new FileReader(); r.onload = ev => { state = JSON.parse(r.result); render(); }; r.readAsText(e.target.files[0]); }
 
-function saveJSON(){
- let a=document.createElement('a')
- a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}))
- a.download=(data.meta.inv||'raport')+'.json'
- a.click()
-}
+    function render() {
+        const root = document.getElementById('app'); root.innerHTML = '';
+        
+        // OKŁADKA
+        const cov = document.createElement('div'); cov.className = 'page';
+        cov.innerHTML = `
+            <div class="logo-box" onclick="uploadImg('logo')">${state.logo ? `<img src="${state.logo}">` : 'LOGO'}</div>
+            <h1 style="text-align:center">PROTOKÓŁ ODBIORU</h1>
+            <div style="padding:20px; font-size:14px">
+                Inwestycja: <input class="modal-field" value="${state.meta.inv}" oninput="state.meta.inv=this.value"><br>
+                Adres: <input class="modal-field" value="${state.meta.adr}" oninput="state.meta.adr=this.value">
+            </div>
+            <div class="logo-box" style="height:80mm" onclick="uploadImg('main')">${state.mainImg ? `<img src="${state.mainImg}">` : 'ZDJĘCIE GŁÓWNE'}</div>`;
+        root.appendChild(cov);
 
-function loadJSON(){
- let l=document.getElementById('loader')
- l.onchange=e=>{
-  let r=new FileReader()
-  r.onload=ev=>{data=JSON.parse(ev.target.result);render()}
-  r.readAsText(e.target.files[0])
- }
- l.click()
-}
+        state.floors.forEach((f, fi) => {
+            const fPage = document.createElement('div'); fPage.className = 'page';
+            fPage.innerHTML = `<h2>${f.name}</h2>
+                <div class="plan-wrapper" onclick="addDot(event, ${fi})">
+                    ${f.plan ? `<img src="${f.plan}" class="plan-img">` : 'KLIKNIJ BY WGRAĆ RZUT'}
+                    ${f.defects.map((d, di) => `<div class="dot ${d.status==='reported'?'c-rep':'c-nrep'}" style="left:${d.x}%; top:${d.y}%" onclick="event.stopPropagation(); openModal(${fi},${di})">${di+1}</div>`).join('')}
+                </div>`;
+            root.appendChild(fPage);
 
-window.onbeforeunload=e=>{
- e.preventDefault()
- e.returnValue=''
-}
-
-addFloor()
-render()
-
-if('serviceWorker'in navigator){
- navigator.serviceWorker.register('sw.js')
-}
+            f.defects.forEach((d, di) => {
+                const dPage = document.createElement('div'); dPage.className = 'page';
+                dPage.innerHTML = `<h3>PUNKT NR ${di+1} - ${d.room}</h3>
+                    <div style="font-weight:bold; color:var(--rep)">Status: ${d.status==='reported'?'Zgłoszone':'Niezgłoszone'}</div>
+                    <p><b>Opis:</b> ${d.desc}</p><p><b>Norma:</b> ${d.norm}</p>
+                    <div class="q-photo">${d.img ? `<img src="${d.img}">` : 'BRAK ZDJĘCIA'}</div>`;
+                root.appendChild(dPage);
+            });
+        });
+    }
+    render();
 </script>
-
 </body>
 </html>
