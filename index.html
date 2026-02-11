@@ -8,37 +8,41 @@
 
 <style>
 :root{
---bg:#f5f6f7;
+--bg:#f6f6f6;
 --card:#fff;
 --text:#111;
---main:#111;
---accent:#f97316;
+--main:#000;
+--accent:#ff7a18;
 }
 .dark{
 --bg:#0f1115;
---card:#1c1f26;
+--card:#1b1e24;
 --text:#fff;
 --main:#000;
 }
 *{box-sizing:border-box;font-family:system-ui}
 body{margin:0;background:var(--bg);color:var(--text)}
-header{position:fixed;top:0;left:0;width:100%;background:var(--main);color:#fff;padding:8px;display:flex;gap:8px;z-index:10}
-header button{flex:1;border:0;border-radius:6px;padding:10px;font-weight:700;background:var(--accent);color:#000}
+header{position:fixed;top:0;left:0;width:100%;background:var(--main);color:#fff;padding:8px;display:flex;gap:8px;z-index:100}
+header button{flex:1;border:0;border-radius:6px;padding:10px;font-weight:800;background:var(--accent);color:#000}
 #app{padding-top:60px}
-.page{background:var(--card);margin:10px;border-radius:10px;padding:10px}
-input,textarea,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:1px solid #ccc}
-.plan{position:relative;height:65vh;background:#ddd;border-radius:10px;overflow:hidden}
+.page{background:var(--card);margin:10px;border-radius:12px;padding:12px}
+input,textarea,select{width:100%;padding:8px;margin:6px 0;border-radius:6px;border:1px solid #ccc}
+.plan{position:relative;height:68vh;background:#ddd;border-radius:12px;overflow:hidden}
 .plan img{width:100%;height:100%;object-fit:contain}
-.dot{position:absolute;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;transform:translate(-50%,-50%)}
-.zgl{background:var(--accent)}
+.dot{position:absolute;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;transform:translate(-50%,-50%);font-size:12px}
+.zgl{background:var(--accent);color:#000}
 .niez{background:#000}
 .omow{background:#888}
-#modal,#ov{display:none}
-#ov{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:100}
-#modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);padding:15px;border-radius:12px;width:90%;max-width:420px;z-index:101}
-.photo{height:150px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.counter{display:flex;gap:10px;font-size:12px;justify-content:space-around;padding:6px}
+#ov{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:none;z-index:1000}
+#modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);padding:14px;border-radius:14px;width:92%;max-width:420px;display:none;z-index:1001}
+.photo{height:150px;border:2px dashed #ccc;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .photo img{width:100%;height:100%;object-fit:contain}
-.counter{display:flex;gap:10px;font-size:12px;justify-content:space-around;padding:5px}
+.tabs{display:flex;gap:6px;margin:8px 0}
+.tabs button{flex:1;border:0;padding:6px;border-radius:6px;background:#ddd;font-weight:700}
+.checklist{border:1px solid #ddd;border-radius:10px;padding:6px;max-height:200px;overflow:auto}
+.cat{font-weight:800;margin-top:6px}
+.sub{margin-left:10px}
 </style>
 </head>
 
@@ -57,16 +61,27 @@ input,textarea,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;bord
 
 <div id="ov" onclick="closeModal()"></div>
 <div id="modal">
-<h3 id="mTitle">Usterka</h3>
+<h3 id="mTitle"></h3>
+
 <label>Pomieszczenie</label>
 <input id="mRoom">
+
 <label>Opis usterki</label>
 <textarea id="mDesc" autofocus></textarea>
+
 <label>Zdjęcie</label>
 <div class="photo" onclick="addPhoto()"><small>DODAJ</small></div>
 
+<div class="tabs">
+<button onclick="switchTab('check')">CHECKLISTA</button>
+<button onclick="switchTab('conf')">SZCZEGÓŁY</button>
+</div>
+
+<div id="checkBox" class="checklist"></div>
+<div id="confBox" class="checklist" style="display:none"></div>
+
 <div style="display:flex;gap:6px;margin-top:10px">
-<button onclick="setStatus('zgl')" style="background:#f97316;color:#000">ZGŁOSZONA</button>
+<button onclick="setStatus('zgl')" style="background:#ff7a18;color:#000">ZGŁOSZONE</button>
 <button onclick="setStatus('niez')" style="background:#000;color:#fff">NIEZGŁ.</button>
 <button onclick="setStatus('omow')" style="background:#888;color:#fff">OMÓW</button>
 </div>
@@ -75,31 +90,36 @@ input,textarea,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;bord
 </div>
 
 <script>
-let data={meta:{inv:'',adr:'',cli:'',date:''},img:'',floors:[],activeRoom:''}
-let af=0,ad=null
-let globalId=1
+let TEMPLATE={
+zakladki:{
+"Checklisty":{
+"Ściany":["Pion","Poziom","Rysy","Kąty"],
+"Posadzki":["Równość","Pęknięcia","Spadki"],
+"Okna":["Rysy","Regulacja","Szczelność"],
+"Drzwi":["Regulacja","Zamykanie","Rysy"]
+},
+"Pomieszczenia":{
+"Piętro 1":["Salon","Kuchnia","Łazienka","Sypialnia","Korytarz"]
+}
+}
+}
+
+let data={meta:{inv:'',adr:'',cli:'',date:''},img:'',floors:[],activeRoom:'',template:TEMPLATE}
+let af=0,ad=null,globalId=1,activeTab="Checklisty"
 
 function newProject(){
 if(!confirm("Nowy projekt?"))return
-data={meta:{inv:'',adr:'',cli:'',date:''},img:'',floors:[],activeRoom:''}
+data={meta:{inv:'',adr:'',cli:'',date:''},img:'',floors:[],activeRoom:'',template:TEMPLATE}
 globalId=1
 addFloor()
 render()
 }
 
-function addFloor(){
-data.floors.push({name:"Kondygnacja "+(data.floors.length+1),plan:'',def:[]})
-af=data.floors.length-1
-}
+function addFloor(){data.floors.push({name:"Kondygnacja "+(data.floors.length+1),plan:'',def:[]});af=data.floors.length-1}
 
 function addPlan(){
-let i=document.createElement('input')
-i.type='file';i.accept='image/*'
-i.onchange=e=>{
-let r=new FileReader()
-r.onload=ev=>{data.floors[af].plan=ev.target.result;render()}
-r.readAsDataURL(e.target.files[0])
-}
+let i=document.createElement('input');i.type='file';i.accept='image/*'
+i.onchange=e=>{let r=new FileReader();r.onload=ev=>{data.floors[af].plan=ev.target.result;render()};r.readAsDataURL(e.target.files[0])}
 i.click()
 }
 
@@ -107,61 +127,61 @@ function addDot(e){
 let f=data.floors[af]
 if(!f.plan){addPlan();return}
 let r=e.currentTarget.getBoundingClientRect()
-let d={
-id:globalId++,
-x:(e.clientX-r.left)/r.width*100,
-y:(e.clientY-r.top)/r.height*100,
-room:data.activeRoom||'',
-desc:'',
-img:'',
-status:'omow'
-}
-f.def.push(d)
-openModal(f.def.length-1)
+let d={id:globalId++,x:(e.clientX-r.left)/r.width*100,y:(e.clientY-r.top)/r.height*100,room:data.activeRoom||'',desc:'',img:'',status:'omow',checks:[]}
+f.def.push(d);openModal(f.def.length-1)
 }
 
 function openModal(i){
 ad=i
 let d=data.floors[af].def[i]
 mTitle.innerText="PUNKT "+d.id
-mRoom.value=d.room
-mDesc.value=d.desc
+mRoom.value=d.room;mDesc.value=d.desc
 document.querySelector('.photo').innerHTML=d.img?`<img src="${d.img}">`:"<small>DODAJ</small>"
+renderChecklist()
 ov.style.display=modal.style.display='block'
-setTimeout(()=>mDesc.focus(),200)
+setTimeout(()=>mDesc.focus(),150)
 }
 
 function closeModal(){
 if(ad===null)return
 let d=data.floors[af].def[ad]
-d.room=mRoom.value
-d.desc=mDesc.value
+d.room=mRoom.value;d.desc=mDesc.value
 data.activeRoom=d.room
-ov.style.display=modal.style.display='none'
-ad=null
-render()
+ov.style.display=modal.style.display='none';ad=null;render()
 }
 
-function setStatus(s){
-data.floors[af].def[ad].status=s
-closeModal()
-}
+function setStatus(s){data.floors[af].def[ad].status=s;closeModal()}
 
-function deleteDot(){
-if(!confirm("Usunąć punkt?"))return
-data.floors[af].def.splice(ad,1)
-closeModal()
-}
+function deleteDot(){if(confirm("Usunąć punkt?")){data.floors[af].def.splice(ad,1);closeModal()}}
 
 function addPhoto(){
-let i=document.createElement('input')
-i.type='file';i.accept='image/*'
-i.onchange=e=>{
-let r=new FileReader()
-r.onload=ev=>{data.floors[af].def[ad].img=ev.target.result;openModal(ad)}
-r.readAsDataURL(e.target.files[0])
-}
+let i=document.createElement('input');i.type='file';i.accept='image/*'
+i.onchange=e=>{let r=new FileReader();r.onload=ev=>{data.floors[af].def[ad].img=ev.target.result;openModal(ad)};r.readAsDataURL(e.target.files[0])}
 i.click()
+}
+
+function switchTab(t){
+document.getElementById('checkBox').style.display=t=="check"?"block":"none"
+document.getElementById('confBox').style.display=t=="conf"?"block":"none"
+}
+
+function renderChecklist(){
+let box=document.getElementById('checkBox')
+box.innerHTML=''
+let tab=data.template.zakladki[activeTab]||{}
+for(let cat in tab){
+box.innerHTML+=`<div class="cat">${cat}</div>`
+tab[cat].forEach(p=>{
+let checked=data.floors[af].def[ad].checks.includes(cat+" - "+p)
+box.innerHTML+=`<div class="sub"><label><input type="checkbox" ${checked?'checked':''} onchange="toggleCheck('${cat} - ${p}')"> ${p}</label></div>`
+})
+}
+}
+
+function toggleCheck(v){
+let d=data.floors[af].def[ad]
+if(d.checks.includes(v))d.checks=d.checks.filter(x=>x!=v)
+else d.checks.push(v)
 }
 
 function save(){
@@ -172,17 +192,11 @@ a.click()
 }
 
 function load(){
-loader.onchange=e=>{
-let r=new FileReader()
-r.onload=ev=>{data=JSON.parse(ev.target.result);render()}
-r.readAsText(e.target.files[0])
-}
+loader.onchange=e=>{let r=new FileReader();r.onload=ev=>{data=JSON.parse(ev.target.result);render()};r.readAsText(e.target.files[0])}
 loader.click()
 }
 
-function toggleTheme(){
-document.body.classList.toggle('dark')
-}
+function toggleTheme(){document.body.classList.toggle('dark')}
 
 function render(){
 app.innerHTML=`
@@ -194,10 +208,7 @@ app.innerHTML=`
 </div>
 
 <div class="page">
-<select onchange="af=this.value;render()">
-${data.floors.map((f,i)=>`<option value="${i}" ${i==af?'selected':''}>${f.name}</option>`).join('')}
-</select>
-
+<select onchange="af=this.value;render()">${data.floors.map((f,i)=>`<option value="${i}" ${i==af?'selected':''}>${f.name}</option>`).join('')}</select>
 <input placeholder="Aktywne pomieszczenie" value="${data.activeRoom}" oninput="data.activeRoom=this.value">
 
 <div class="plan" onclick="addDot(event)">
@@ -215,12 +226,10 @@ ${data.floors[af].def.map((d,i)=>`<div class="dot ${d.status}" style="left:${d.x
 `
 }
 
-addFloor()
-render()
+window.onbeforeunload=e=>{e.preventDefault();e.returnValue=''}
 
-if('serviceWorker' in navigator){
-navigator.serviceWorker.register('sw.js')
-}
+addFloor();render()
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js')}
 </script>
 </body>
 </html>

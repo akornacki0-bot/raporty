@@ -1,6 +1,6 @@
 self.addEventListener('install', e => {
  e.waitUntil(
-  caches.open('raport-pro').then(cache => {
+  caches.open('raport-pro-v1').then(cache => {
    return cache.addAll(['./','index.html','manifest.json'])
   })
  )
