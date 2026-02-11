@@ -2,238 +2,305 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>PR RAPORTY v22</title>
+    <title>PR RAPORTY v24</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        :root { --main: #000; --accent: #e67e22; --bg: #f0f2f5; }
+        :root { --dark: #1a1a1a; --accent: #f39c12; --bg: #f0f2f5; --white: #ffffff; }
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding-top: 70px; }
-        
-        /* UI */
-        .toolbar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: var(--main); color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; z-index: 1000; }
-        .btn { padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; color: #fff; text-transform: uppercase; }
-        
-        /* PDF Layout */
-        .page { width: 210mm; min-height: 295mm; background: #fff; margin: 0 auto 20px; padding: 10mm; position: relative; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; height: 60px; }
-        .logo-main { max-height: 120px; max-width: 300px; object-fit: contain; } /* Większe logo na okładkę */
-        .logo-header { max-height: 45px; max-width: 150px; object-fit: contain; }
-        
-        /* System 2 usterki na stronę */
-        .defect-row { height: 130mm; border: 1px solid #eee; margin-bottom: 10mm; padding: 10px; display: flex; flex-direction: column; break-inside: avoid; }
-        .defect-img-box { flex-grow: 1; height: 80mm; display: flex; justify-content: center; align-items: center; background: #f9f9f9; overflow: hidden; border-radius: 5px; }
-        .defect-img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-top: 65px; color: var(--dark); }
 
-        /* Rzuty */
-        .plan-box { width: 100%; height: 180mm; background: #fafafa; position: relative; display: flex; align-items: center; justify-content: center; border: 1px solid #ddd; }
-        .plan-img { max-width: 100%; max-height: 100%; }
-        .rot-90 { transform: rotate(90deg); } .rot-180 { transform: rotate(180deg); } .rot-270 { transform: rotate(270deg); }
-        .dot { position: absolute; width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; color: #fff; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); font-weight: bold; font-size: 13px; z-index: 500; }
-        
+        /* Nawigacja */
+        .toolbar { position: fixed; top: 0; left: 0; width: 100%; height: 60px; background: var(--dark); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; z-index: 1000; padding: 0 10px; }
+        .btn { padding: 10px 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; text-transform: uppercase; color: #fff; transition: 0.2s; }
+        .btn:active { transform: scale(0.95); }
+
+        /* Dokument PDF */
+        .page { width: 210mm; min-height: 296mm; background: var(--white); margin: 0 auto 20px; padding: 15mm; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--dark); padding-bottom: 10px; margin-bottom: 20px; }
+        .logo-img { max-height: 60px; max-width: 200px; object-fit: contain; }
+
+        /* Rzuty i Punkty */
+        .plan-container { width: 100%; height: 180mm; background: #eee; position: relative; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; overflow: hidden; }
+        .plan-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .dot { position: absolute; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; color: #fff; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 10; }
+
+        /* Sekcja Usterek w PDF (2 na stronę) */
+        .defect-box { height: 125mm; border-bottom: 1px solid #eee; padding: 10px 0; display: flex; flex-direction: column; }
+        .defect-img-wrap { width: 100%; height: 80mm; background: #f9f9f9; display: flex; justify-content: center; align-items: center; border: 1px solid #ddd; margin: 10px 0; border-radius: 4px; overflow: hidden; }
+        .defect-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
         /* Formularze */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; }
-        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 20px; width: 90%; max-width: 500px; border-radius: 8px; z-index: 2001; }
-        .input { width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; }
+        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 25px; width: 95%; max-width: 500px; border-radius: 12px; z-index: 2001; max-height: 90vh; overflow-y: auto; }
+        .input { width: 100%; padding: 12px; margin: 6px 0 16px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
         
+        /* Statusy */
         .c-reported { background: #e67e22; } .c-not_reported { background: #2c3e50; } .c-to_discuss { background: #7f8c8d; }
-        
+
         @media print { 
-            body { padding: 0; background: #fff; } 
             .no-print { display: none !important; } 
-            .page { margin: 0; box-shadow: none; width: 210mm; height: 296mm; page-break-after: always; overflow: hidden; }
-            .defect-row:nth-of-type(2n) { page-break-after: always; }
+            .page { margin: 0; box-shadow: none; page-break-after: always; }
+            body { padding: 0; background: #fff; }
         }
     </style>
 </head>
 <body>
 
 <div class="toolbar no-print">
-    <button class="btn" style="background:#27ae60" onclick="addFloor()">+ Piętro</button>
-    <button class="btn" style="background:#2980b9" onclick="exportData()">Zapisz JSON</button>
-    <button class="btn" style="background:#8e44ad" onclick="document.getElementById('file-in').click()">Wczytaj</button>
-    <button class="btn" style="background:#e74c3c" onclick="window.print()">Drukuj PDF</button>
-    <button class="btn" style="background:#333" onclick="resetApp()">Nowy</button>
+    <button class="btn" style="background:#27ae60" onclick="addFloor()">+ PIĘTRO</button>
+    <button class="btn" style="background:#2980b9" onclick="manualSave()">ZAPISZ</button>
+    <button class="btn" style="background:#8e44ad" onclick="document.getElementById('file-input').click()">WCZYTAJ</button>
+    <button class="btn" style="background:#f39c12" onclick="openConfig()">USTAWIENIA</button>
+    <button class="btn" style="background:#e74c3c" onclick="window.print()">PDF</button>
+    <button class="btn" style="background:#333" onclick="resetApp()">NOWY</button>
 </div>
 
-<input type="file" id="file-in" style="display:none" onchange="importData(event)">
-<div class="modal-overlay" id="ov" onclick="closeModal()"></div>
+<input type="file" id="file-input" style="display:none" onchange="importData(event)">
+<div class="overlay" id="overlay" onclick="closeModal()"></div>
 
 <div class="modal" id="edit-modal">
-    <h3 id="m-title" style="margin:0 0 15px">Punkt</h3>
+    <h2 id="modal-title" style="margin-top:0">Punkt</h2>
     <label>Pomieszczenie:</label>
     <input id="m-room" class="input" list="room-list">
-    <div id="m-img-btn" style="padding:15px; background:#f0f0f0; border:1px dashed #999; text-align:center; cursor:pointer; margin-bottom:10px;" onclick="uploadImg('defect')">DODAJ / ZMIEŃ ZDJĘCIE</div>
-    <textarea id="m-desc" class="input" style="height:80px" placeholder="Opis usterki..."></textarea>
+    <div id="m-img-area" style="width:100%; height:150px; background:#f0f0f0; border:2px dashed #bbb; display:flex; justify-content:center; align-items:center; cursor:pointer; margin-bottom:15px; border-radius:8px; overflow:hidden;" onclick="triggerUpload('defect')">Kliknij, aby dodać zdjęcie</div>
+    <textarea id="m-desc" class="input" style="height:100px" placeholder="Opis usterki..."></textarea>
     <input id="m-norm" class="input" placeholder="Norma / Podstawa">
-    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px;">
-        <button class="btn c-reported" onclick="savePoint('reported')">Zgłoszona</button>
-        <button class="btn c-not_reported" onclick="savePoint('not_reported')">Niezgłosz.</button>
-        <button class="btn c-to_discuss" onclick="savePoint('to_discuss')">Uwaga</button>
+    
+    <div id="m-checklist-area" style="background:#f9f9f9; padding:10px; border-radius:8px; margin-bottom:15px; max-height:150px; overflow-y:auto;"></div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+        <button class="btn c-reported" onclick="savePointData('reported')">ZGŁOSZONA</button>
+        <button class="btn c-not_reported" onclick="savePointData('not_reported')">NIEZGŁ.</button>
+        <button class="btn c-to_discuss" onclick="savePointData('to_discuss')">UWAGA</button>
     </div>
-    <button class="btn" style="background:#c0392b; width:100%; margin-top:10px;" onclick="deletePoint()">Usuń punkt</button>
+    <button class="btn" style="background:#c0392b; width:100%; margin-top:15px;" onclick="deletePoint()">USUŃ PUNKT</button>
 </div>
 
-<div id="app"></div>
+<div class="modal" id="config-modal">
+    <h2>Konfiguracja</h2>
+    <label>Kategorie i elementy (Format: Kategoria: element1, element2):</label>
+    <textarea id="cfg-text" class="input" style="height:200px"></textarea>
+    <button class="btn" style="background:#27ae60; width:100%" onclick="saveConfig()">ZAPISZ USTAWIENIA</button>
+</div>
+
+<div id="main-app"></div>
 <datalist id="room-list"></datalist>
 
 <script>
-    let state = JSON.parse(localStorage.getItem('pr_v22_state')) || {
+    // --- STAN APLIKACJI ---
+    let appData = JSON.parse(localStorage.getItem('pr_raport_v24')) || {
         meta: { inv:'', adr:'', date:'', cli:'', logo:'', mainImg:'' },
-        floors: []
+        floors: [],
+        config: {
+            rooms: ['Salon', 'Kuchnia', 'Łazienka', 'Sypialnia', 'Przedpokój'],
+            checklist: { "Ściany": ["Pion", "Tynk"], "Okna": ["Rysy", "Regulacja"] }
+        }
     };
-    let config = { rooms: ['Salon', 'Kuchnia', 'Łazienka', 'Sypialnia 1', 'Sypialnia 2', 'Przedpokój', 'Balkon'] };
-    let active = { f: null, d: null, tempImg: null };
 
-    // Optymalizacja szybkości - zapis tylko przy akcji
-    function fastSave() { localStorage.setItem('pr_v22_state', JSON.stringify(state)); }
+    let active = { floorIdx: null, defectIdx: null, tempImg: '' };
 
+    // --- ZABEZPIECZENIA ---
+    window.onbeforeunload = () => "Czy na pewno chcesz opuścić stronę? Upewnij się, że zapisałeś projekt.";
+    
+    // Autozapis co 30s (bezpieczeństwo)
+    setInterval(() => { localStorage.setItem('pr_raport_v24', JSON.stringify(appData)); }, 30000);
+
+    function manualSave() {
+        localStorage.setItem('pr_raport_v24', JSON.stringify(appData));
+        const blob = new Blob([JSON.stringify(appData)], {type:'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `Raport_${appData.meta.inv || 'Export'}.json`; a.click();
+    }
+
+    // --- RENDEROWANIE ---
     function render() {
-        const root = document.getElementById('app'); root.innerHTML = '';
+        const container = document.getElementById('main-app');
+        container.innerHTML = '';
         
-        // 1. OKŁADKA
-        const cover = document.createElement('div'); cover.className = 'page';
-        cover.innerHTML = `
-            <div style="text-align:center; height:100%; display:flex; flex-direction:column; justify-content:center; padding:20mm;">
-                <div onclick="uploadImg('logo')" style="cursor:pointer; margin-bottom:40px;">
-                    ${state.meta.logo ? `<img src="${state.meta.logo}" class="logo-main">` : '<h1>[ KLIKNIJ BY DODAĆ LOGO ]</h1>'}
+        // 1. Okładka
+        const cover = createPage('OKŁADKA');
+        cover.innerHTML += `
+            <div style="flex-grow:1; display:flex; flex-direction:column; justify-content:center; text-align:center;">
+                <div onclick="triggerUpload('logo')" style="cursor:pointer; margin-bottom:30px;">
+                    ${appData.meta.logo ? `<img src="${appData.meta.logo}" style="max-height:120px;">` : '<h1>[ DODAJ LOGO FIRMY ]</h1>'}
                 </div>
-                <h1 style="font-size:35px; border-bottom:4px solid #000; padding-bottom:10px;">RAPORT TECHNICZNY</h1>
-                <div style="text-align:left; margin-top:30px;">
-                    <input class="input" placeholder="Inwestycja" value="${state.meta.inv}" oninput="state.meta.inv=this.value; fastSave()">
-                    <input class="input" placeholder="Adres" value="${state.meta.adr}" oninput="state.meta.adr=this.value; fastSave()">
-                    <input class="input" type="date" value="${state.meta.date}" oninput="state.meta.date=this.value; fastSave()">
-                    <input class="input" placeholder="Klient" value="${state.meta.cli}" oninput="state.meta.cli=this.value; fastSave()">
+                <h1 style="font-size:42px; border-bottom:4px solid #000; padding-bottom:15px; margin-bottom:40px;">PROTOKÓŁ ODBIORU</h1>
+                <div style="text-align:left; max-width:500px; margin:0 auto; width:100%;">
+                    <input class="input" placeholder="Inwestycja / Budynek" value="${appData.meta.inv}" onchange="appData.meta.inv=this.value">
+                    <input class="input" placeholder="Adres lokalu" value="${appData.meta.adr}" onchange="appData.meta.adr=this.value">
+                    <input class="input" type="date" value="${appData.meta.date}" onchange="appData.meta.date=this.value">
+                    <input class="input" placeholder="Nazwisko klienta" value="${appData.meta.cli}" onchange="appData.meta.cli=this.value">
                 </div>
-                <div style="width:100%; height:80mm; background:#eee; margin-top:20px; display:flex; justify-content:center; align-items:center; overflow:hidden; border:1px solid #ddd; cursor:pointer;" onclick="uploadImg('main')">
-                    ${state.meta.mainImg ? `<img src="${state.meta.mainImg}" style="width:100%; height:100%; object-fit:cover;">` : 'KLIKNIJ BY DODAĆ ZDJĘCIE GŁÓWNE'}
+                <div style="width:100%; height:90mm; background:#eee; margin-top:30px; border-radius:10px; overflow:hidden; cursor:pointer; border:1px solid #ccc;" onclick="triggerUpload('main')">
+                    ${appData.meta.mainImg ? `<img src="${appData.meta.mainImg}" style="width:100%; height:100%; object-fit:cover;">` : 'DODAJ ZDJĘCIE GŁÓWNE BUDYNKU'}
                 </div>
             </div>`;
-        root.appendChild(cover);
+        container.appendChild(cover);
 
-        // 2. PIĘTRA I USTERKI
-        state.floors.forEach((f, fi) => {
-            const fPage = document.createElement('div'); fPage.className = 'page';
-            fPage.innerHTML = `
-                <div class="header">
-                    <img src="${state.meta.logo}" class="logo-header">
-                    <div style="text-align:right"><b>${f.name}</b><br>${state.meta.inv}</div>
-                </div>
-                <div class="plan-box" onclick="addDot(event, ${fi})">
-                    ${f.plan ? `<img src="${f.plan}" class="plan-img rot-${f.rotation || 0}">` : 'KLIKNIJ BY WGRAĆ RZUT'}
-                    ${f.defects.map((d, di) => `
-                        <div class="dot c-${d.status}" style="left:${d.x}%; top:${d.y}%;" onclick="event.stopPropagation(); openModal(${fi}, ${di})">${di+1}</div>
-                    `).join('')}
+        // 2. Piętra i Usterki
+        appData.floors.forEach((f, fi) => {
+            const fPage = createPage(f.name);
+            fPage.innerHTML += `
+                <div class="plan-container" onclick="addPoint(event, ${fi})">
+                    ${f.plan ? `<img src="${f.plan}" class="plan-img" style="transform:rotate(${f.rot || 0}deg)">` : '<h2>KLIKNIJ, ABY WGRAĆ RZUT</h2>'}
+                    ${f.defects.map((d, di) => `<div class="dot c-${d.status}" style="left:${d.x}%; top:${d.y}%;" onclick="event.stopPropagation(); openPoint(${fi}, ${di})">${di+1}</div>`).join('')}
                 </div>
                 <div class="no-print" style="margin-top:10px; display:flex; gap:10px;">
-                    <button class="btn" style="background:#333" onclick="rotate(${fi})">Obróć ↻</button>
-                    <button class="btn" style="background:#c0392b" onclick="deleteFloor(${fi})">Usuń piętro</button>
-                    <input value="${f.name}" oninput="state.floors[${fi}].name=this.value; fastSave()" style="padding:5px;">
+                    <button class="btn" style="background:#333" onclick="rotateFloor(${fi})">OBRÓĆ RZUT</button>
+                    <button class="btn" style="background:#c0392b" onclick="deleteFloor(${fi})">USUŃ PIĘTRO</button>
+                    <input class="input" style="width:200px; margin:0;" value="${f.name}" onchange="appData.floors[${fi}].name=this.value; render()">
                 </div>`;
-            root.appendChild(fPage);
+            container.appendChild(fPage);
 
-            // GESTOR USTEREK (2 na stronę)
-            for(let i=0; i < f.defects.length; i+=2) {
-                const dPage = document.createElement('div'); dPage.className = 'page';
-                dPage.innerHTML = `<div class="header"><img src="${state.meta.logo}" class="logo-header"><div>${state.meta.inv}</div></div>`;
-                
-                for(let j=i; j<i+2 && j<f.defects.length; j++) {
+            // Wyświetlanie usterek (2 na stronę)
+            for (let i = 0; i < f.defects.length; i += 2) {
+                const dPage = createPage('LISTA USTEREK');
+                for (let j = i; j < i + 2 && j < f.defects.length; j++) {
                     const d = f.defects[j];
                     dPage.innerHTML += `
-                        <div class="defect-row">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                <b style="color:var(--accent); text-transform:uppercase;">${j+1}. ${d.room || 'Inne'}</b>
-                                <small>${d.status}</small>
+                        <div class="defect-box">
+                            <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--accent);">
+                                <span>PUNKT ${j + 1}: ${d.room || 'Nieokreślone'}</span>
+                                <span style="font-size:10px; color:#555">STATUS: ${d.status.toUpperCase()}</span>
                             </div>
-                            <div style="font-size:14px; margin-bottom:5px;">${d.desc || 'Brak opisu.'}</div>
-                            <div class="defect-img-box">${d.img ? `<img src="${d.img}">` : 'BRAK ZDJĘCIA'}</div>
-                            ${d.norm ? `<div style="font-size:11px; margin-top:5px; color:red;">NORMA: ${d.norm}</div>` : ''}
+                            <div style="font-size:14px; margin:8px 0;">${d.desc || 'Brak opisu usterki.'}</div>
+                            <div class="defect-img-wrap">${d.img ? `<img src="${d.img}">` : 'BRAK ZDJĘCIA'}</div>
+                            ${d.norm ? `<div style="font-size:11px; color:red; border-top:1px dashed #ccc; padding-top:4px;">NORMA: ${d.norm}</div>` : ''}
                         </div>`;
                 }
-                root.appendChild(dPage);
+                container.appendChild(dPage);
             }
         });
-        updateDatalist();
+        updateDatalists();
     }
 
-    function addDot(e, fi) {
-        if(!state.floors[fi].plan) return uploadImg('plan', fi);
-        const r = e.currentTarget.getBoundingClientRect();
-        const di = state.floors[fi].defects.length;
-        state.floors[fi].defects.push({ x:((e.clientX-r.left)/r.width)*100, y:((e.clientY-r.top)/r.height)*100, room:'', desc:'', status:'to_discuss', img:'', norm:'' });
-        fastSave(); render(); openModal(fi, di);
+    function createPage(title) {
+        const p = document.createElement('div'); p.className = 'page';
+        p.innerHTML = `<div class="header">
+            ${appData.meta.logo ? `<img src="${appData.meta.logo}" class="logo-img">` : '<b>RAPORT</b>'}
+            <div style="text-align:right; font-size:12px;"><b>${appData.meta.inv || '---'}</b><br>${title}</div>
+        </div>`;
+        return p;
     }
 
-    function openModal(fi, di) {
-        active = { f: fi, d: di, tempImg: state.floors[fi].defects[di].img };
-        const d = state.floors[fi].defects[di];
-        document.getElementById('m-title').innerText = `Punkt ${di+1}`;
+    // --- LOGIKA PUNKTÓW ---
+    function addPoint(e, fi) {
+        if(!appData.floors[fi].plan) return triggerUpload('plan', fi);
+        const rect = e.currentTarget.getBoundingClientRect();
+        const di = appData.floors[fi].defects.length;
+        appData.floors[fi].defects.push({
+            x: ((e.clientX - rect.left) / rect.width) * 100,
+            y: ((e.clientY - rect.top) / rect.height) * 100,
+            room: '', desc: '', status: 'to_discuss', img: '', norm: '', checks: {}
+        });
+        render(); openPoint(fi, di);
+    }
+
+    function openPoint(fi, di) {
+        active = { floorIdx: fi, defectIdx: di };
+        const d = appData.floors[fi].defects[di];
+        active.tempImg = d.img;
+        
+        document.getElementById('modal-title').innerText = `Punkt ${di+1}`;
         document.getElementById('m-room').value = d.room;
         document.getElementById('m-desc').value = d.desc;
         document.getElementById('m-norm').value = d.norm;
-        document.getElementById('m-img-btn').innerText = d.img ? "ZDJĘCIE DODANE - KLIKNIJ BY ZMIENIĆ" : "DODAJ ZDJĘCIE";
-        document.getElementById('ov').style.display = 'block';
+        document.getElementById('m-img-area').innerHTML = d.img ? `<img src="${d.img}" style="height:100%">` : 'Dodaj zdjęcie';
+        
+        const checkArea = document.getElementById('m-checklist-area');
+        checkArea.innerHTML = '';
+        for (const [cat, items] of Object.entries(appData.config.checklist)) {
+            checkArea.innerHTML += `<div style="font-weight:bold; font-size:11px; margin-top:8px;">${cat}</div>`;
+            items.forEach(it => {
+                const key = `${cat}:${it}`;
+                checkArea.innerHTML += `<label style="display:block; font-size:14px;"><input type="checkbox" ${d.checks[key]?'checked':''} onchange="toggleCheck('${key}')"> ${it}</label>`;
+            });
+        }
+        
+        document.getElementById('overlay').style.display = 'block';
         document.getElementById('edit-modal').style.display = 'block';
         document.getElementById('m-desc').focus();
     }
 
-    function savePoint(status) {
-        const d = state.floors[active.f].defects[active.d];
+    function toggleCheck(key) {
+        const d = appData.floors[active.floorIdx].defects[active.defectIdx];
+        d.checks[key] = !d.checks[key];
+    }
+
+    function savePointData(status) {
+        const d = appData.floors[active.floorIdx].defects[active.defectIdx];
         d.room = document.getElementById('m-room').value;
         d.desc = document.getElementById('m-desc').value;
         d.norm = document.getElementById('m-norm').value;
         d.status = status;
         d.img = active.tempImg;
-        if(d.room && !config.rooms.includes(d.room)) config.rooms.push(d.room);
-        closeModal(); fastSave(); render();
+        if(d.room && !appData.config.rooms.includes(d.room)) appData.config.rooms.push(d.room);
+        closeModal(); render();
     }
 
-    function uploadImg(type, fi) {
-        const i = document.createElement('input'); i.type='file'; i.accept='image/*';
-        i.onchange = e => {
-            const r = new FileReader(); r.onload = ev => {
-                const res = ev.target.result;
-                if(type==='logo') state.meta.logo = res;
-                else if(type==='main') state.meta.mainImg = res;
-                else if(type==='plan') state.floors[fi].plan = res;
-                else if(type==='defect') {
-                    active.tempImg = res;
-                    document.getElementById('m-img-btn').innerText = "ZDJĘCIE DODANE!";
+    // --- MEDIA ---
+    function triggerUpload(type, fi) {
+        const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*';
+        input.onchange = e => {
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const base64 = ev.target.result;
+                if(type === 'logo') appData.meta.logo = base64;
+                else if(type === 'main') appData.meta.mainImg = base64;
+                else if(type === 'plan') appData.floors[fi].plan = base64;
+                else if(type === 'defect') {
+                    active.tempImg = base64;
+                    document.getElementById('m-img-area').innerHTML = `<img src="${base64}" style="height:100%">`;
                 }
-                fastSave(); render();
-            }; r.readAsDataURL(e.target.files[0]);
-        }; i.click();
+                render();
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+        input.click();
     }
 
-    function rotate(fi) { state.floors[fi].rotation = ((state.floors[fi].rotation || 0)+90)%360; fastSave(); render(); }
-    function addFloor() { state.floors.push({ name:'PIĘTRO '+(state.floors.length+1), plan:'', defects:[], rotation:0 }); fastSave(); render(); }
-    function deleteFloor(fi) { if(confirm("Usunąć piętro?")) { state.floors.splice(fi,1); fastSave(); render(); } }
-    function deletePoint() { state.floors[active.f].defects.splice(active.d,1); closeModal(); fastSave(); render(); }
-    function closeModal() { document.getElementById('ov').style.display='none'; document.getElementById('edit-modal').style.display='none'; }
-    function updateDatalist() { document.getElementById('room-list').innerHTML = config.rooms.map(r=>`<option value="${r}">`).join(''); }
-    
-    function exportData() {
-        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(state)], {type:'application/json'}));
-        a.download = `Raport_${state.meta.inv || 'PR'}.json`; a.click();
+    // --- POMOCNICZE ---
+    function rotateFloor(fi) { appData.floors[fi].rot = ((appData.floors[fi].rot || 0) + 90) % 360; render(); }
+    function addFloor() { appData.floors.push({ name: 'Piętro '+(appData.floors.length+1), plan:'', defects:[], rot:0 }); render(); }
+    function deleteFloor(fi) { if(confirm("Usunąć piętro?")) { appData.floors.splice(fi,1); render(); } }
+    function deletePoint() { appData.floors[active.floorIdx].defects.splice(active.defectIdx,1); closeModal(); render(); }
+    function closeModal() { document.getElementById('overlay').style.display='none'; document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); }
+    function updateDatalists() { document.getElementById('room-list').innerHTML = appData.config.rooms.map(r=>`<option value="${r}">`).join(''); }
+
+    function openConfig() {
+        let val = ""; Object.entries(appData.config.checklist).forEach(([k,v]) => val += `${k}: ${v.join(', ')}\n`);
+        document.getElementById('cfg-text').value = val;
+        document.getElementById('overlay').style.display='block';
+        document.getElementById('config-modal').style.display='block';
+    }
+
+    function saveConfig() {
+        appData.config.checklist = {};
+        document.getElementById('cfg-text').value.split('\n').forEach(line => {
+            if(line.includes(':')) {
+                const [k, v] = line.split(':');
+                appData.config.checklist[k.trim()] = v.split(',').map(i=>i.trim()).filter(i=>i);
+            }
+        });
+        closeModal(); render();
     }
 
     function importData(e) {
-        const r = new FileReader(); r.onload = ev => {
-            try {
-                const data = JSON.parse(ev.target.result);
-                // Kompatybilność ze starymi wersjami
-                state = { 
-                    meta: data.meta || { inv:'', adr:'', date:'', cli:'', logo:'', mainImg:'' },
-                    floors: data.floors || []
-                };
-                fastSave(); render();
-            } catch(err) { alert("Błąd wczytywania pliku!"); }
-        }; r.readAsText(e.target.files[0]);
+        const r = new FileReader();
+        r.onload = ev => {
+            try { 
+                const d = JSON.parse(ev.target.result);
+                appData = d; render();
+            } catch(e) { alert("Błędny plik!"); }
+        };
+        r.readAsText(e.target.files[0]);
     }
 
-    function resetApp() { if(confirm("Wyczyścić wszystko?")) { state = { meta:{inv:'', adr:'', date:'', cli:'', logo:'', mainImg:''}, floors:[] }; addFloor(); fastSave(); render(); } }
+    function resetApp() { if(confirm("ZRESETOWAĆ WSZYSTKO?")) { localStorage.clear(); location.reload(); } }
 
-    if(!state.floors.length) addFloor();
+    if(appData.floors.length === 0) addFloor();
     render();
 </script>
+<script> if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); } </script>
 </body>
 </html>

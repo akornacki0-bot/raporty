@@ -1,37 +1,15 @@
-const CACHE_NAME = 'pr-raporty-v21'; // Zmieniona wersja wymusza odświeżenie u klienta
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon.png'
-];
+const CACHE = 'pr-v24-cache';
+const FILES = ['./', './index.html', './manifest.json'];
 
-// Instalacja i cache'owanie zasobów
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
-  );
-  self.skipWaiting(); // Wymusza aktywację nowej wersji natychmiast
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
+  self.skipWaiting();
 });
 
-// Usuwanie starych wersji cache
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
-    })
-  );
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))));
 });
 
-// Obsługa zapytań (najpierw cache, potem sieć)
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });
