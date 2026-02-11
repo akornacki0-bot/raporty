@@ -1,8 +1,9 @@
-const CACHE_NAME = 'raporty-v19-20'; // Zmiana nazwy wymusza nowy zapis w pamięci
+const CACHE_NAME = 'inspect-app-v22'; 
+
 const ASSETS = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
 ];
 
 self.addEventListener('install', (e) => {
