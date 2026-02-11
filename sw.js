@@ -1,4 +1,4 @@
-const CACHE_NAME = 'raporty-v19-19'; // Zmiana nazwy wymusza nowy zapis w pamięci
+const CACHE_NAME = 'raporty-v19-20'; // Zmiana nazwy wymusza nowy zapis w pamięci
 const ASSETS = [
   './',
   './index.html',
