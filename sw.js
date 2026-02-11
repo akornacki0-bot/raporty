@@ -1,45 +1,29 @@
-const CACHE_NAME = 'pr-raporty-v27';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon.png'
-];
+const CACHE_NAME = 'pr-raporty-v28'; // Zmieniamy numer, aby wymusić reset
+const ASSETS = ['./', './index.html', './manifest.json'];
 
-// Instalacja - pobieranie plików do pamięci podręcznej
 self.addEventListener('install', e => {
-  self.skipWaiting(); // Wymusza przejście do nowej wersji natychmiast
+  console.log('SW: Instalacja wersji v28');
+  self.skipWaiting(); 
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      console.log('SW: Buforowanie plików');
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
 });
 
-// Aktywacja - czyszczenie starych wersji cache
 self.addEventListener('activate', e => {
+  console.log('SW: Aktywacja i czyszczenie starego cache');
   e.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            console.log('SW: Usuwanie starego cache:', key);
-            return caches.delete(key);
-          }
-        })
-      );
-    })
+    caches.keys().then(keys => Promise.all(
+      keys.map(key => {
+        if (key !== CACHE_NAME) return caches.delete(key);
+      })
+    ))
   );
   return self.clients.claim();
 });
 
-// Obsługa zapytań - tryb Offline
+// Ten fragment wymusza pobieranie ZAWSZE z sieci, gdy jest internet
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(response => {
-      // Zwróć plik z cache, a jeśli go nie ma - pobierz z sieci
-      return response || fetch(e.request);
-    })
+    fetch(e.request).catch(() => caches.match(e.request))
   );
 });
