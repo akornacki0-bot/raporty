@@ -1,380 +1,161 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <title>RAPORTY PRO v33</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>
-        :root { --main: #2c3e50; --acc: #f39c12; --bg: #f4f7f6; --white: #ffffff; --border: #dcdde1; }
-        * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding-top: 60px; background: var(--bg); }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raport Odbioru PRO</title>
 
-        /* PASEK NARZĘDZI */
-        .toolbar { position: fixed; top: 0; width: 100%; height: 55px; background: var(--main); color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; z-index: 1000; padding: 0 10px; }
-        .btn { border: none; border-radius: 4px; padding: 10px 15px; font-weight: bold; cursor: pointer; font-size: 11px; text-transform: uppercase; color: #fff; }
-        .btn-green { background: #27ae60; } .btn-blue { background: #2980b9; } .btn-orange { background: #f39c12; } .btn-red { background: #e74c3c; } .btn-dark { background: #34495e; }
+<link rel="manifest" href="manifest.json">
 
-        /* FORMAT A4 */
-        .page { width: 210mm; min-height: 297mm; background: var(--white); margin: 10px auto; padding: 15mm; position: relative; display: flex; flex-direction: column; box-shadow: 0 0 10px rgba(0,0,0,0.1); page-break-after: always; overflow: hidden; }
-        .page-cover { height: 297mm; justify-content: center; text-align: center; }
-
-        /* FILTRY */
-        .filter-bar { background: #fff; padding: 12px; margin: 10px auto; width: 210mm; display: flex; gap: 15px; border-radius: 6px; border: 1px solid var(--border); align-items: center; }
-        .filter-bar select { padding: 8px; border-radius: 4px; border: 1px solid var(--border); }
-
-        /* OBSZAR RZUTU */
-        .plan-area { position: relative; width: 100%; flex-grow: 1; background: #f8f9fa; border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; }
-        .plan-img { position: relative; pointer-events: none; transform-origin: center; will-change: transform, top, left; }
-        .dot { position: absolute; width: 34px; height: 34px; border-radius: 50%; border: 2px solid #fff; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; transform: translate(-50%, -50%); z-index: 100; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
-        
-        .status-zgloszone { background: #e67e22 !important; } 
-        .status-niezgloszone { background: #2c3e50 !important; } 
-        .status-uwaga { background: #7f8c8d !important; }
-
-        /* LISTA USTEREK */
-        .defect-row { height: 130mm; border-bottom: 2px solid #eee; padding: 20px 0; display: flex; gap: 25px; page-break-inside: avoid; position: relative; }
-        .defect-img-container { width: 45%; height: 100%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 4px; }
-        .defect-img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .defect-info { width: 55%; display: flex; flex-direction: column; gap: 8px; }
-
-        /* MODALE */
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; }
-        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 25px; width: 95%; max-width: 900px; border-radius: 12px; z-index: 2001; max-height: 90vh; overflow-y: auto; }
-        .input { width: 100%; padding: 12px; margin: 8px 0 15px; border: 1px solid var(--border); border-radius: 6px; font-size: 15px; }
-
-        .settings-layout { display: flex; gap: 20px; min-height: 400px; }
-        .settings-tabs { width: 200px; display: flex; flex-direction: column; gap: 5px; border-right: 1px solid #eee; }
-        .tab-btn { padding: 12px; border: none; background: #eee; text-align: left; cursor: pointer; border-radius: 4px; font-weight: bold; }
-        .tab-btn.active { background: var(--acc); color: white; }
-
-        @media print {
-            .no-print { display: none !important; }
-            .page { margin: 0; box-shadow: none; width: 210mm; height: 297mm; }
-            body { padding: 0; background: #fff; }
-        }
-    </style>
+<style>
+body{margin:0;font-family:system-ui;background:#f5f6f7}
+header{background:#1f2937;color:#fff;padding:10px;text-align:center;font-weight:700}
+.toolbar{display:flex;gap:8px;padding:8px;background:#111;color:#fff}
+.toolbar button{flex:1;padding:10px;border:0;border-radius:6px;background:#2563eb;color:#fff;font-weight:700}
+.page{background:#fff;margin:8px;padding:10px;border-radius:10px}
+input,textarea,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:1px solid #ccc}
+.planBox{position:relative;background:#eee;height:60vh;border-radius:10px;overflow:hidden}
+.planBox img{width:100%;height:100%;object-fit:contain}
+.dot{position:absolute;width:28px;height:28px;border-radius:50%;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%)}
+.rep{background:#f59e0b}
+.nrep{background:#000}
+.none{background:#9ca3af}
+.counter{display:flex;gap:10px;justify-content:space-around;padding:8px;font-size:13px}
+.hidden{display:none}
+</style>
 </head>
+
 <body>
 
-<div class="toolbar no-print">
-    <button class="btn btn-green" onclick="addFloor()">+ PIĘTRO</button>
-    <button class="btn btn-blue" onclick="saveData()">ZAPISZ JSON</button>
-    <button class="btn btn-dark" onclick="document.getElementById('load-input').click()">WCZYTAJ</button>
-    <button class="btn btn-orange" onclick="openSettings()">SZCZEGÓŁY (BAZA)</button>
-    <button class="btn btn-red" onclick="window.print()">DRUKUJ PDF</button>
-</div>
-<input type="file" id="load-input" style="display:none" onchange="loadData(event)">
+<header>ODBIÓR TECHNICZNY</header>
 
-<div class="overlay" id="overlay" onclick="closeModals()"></div>
-
-<div class="modal" id="modal-point">
-    <h2 id="point-title" style="margin-top:0">Edycja usterki</h2>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-        <div>
-            <label><b>Pomieszczenie:</b></label>
-            <input id="p-room" class="input">
-            <label><b>Status:</b></label>
-            <select id="p-status" class="input">
-                <option value="status-zgloszone">Zgłoszone</option>
-                <option value="status-niezgloszone">Niezgłoszone</option>
-                <option value="status-uwaga">Do omówienia</option>
-            </select>
-            <div id="point-selectors"></div>
-        </div>
-        <div>
-            <div id="p-photo-preview" style="width:100%; height:200px; border:2px dashed #ccc; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="uploadDefectPhoto()">KLIKNIJ BY DODAĆ ZDJĘCIE</div>
-            <div id="p-tags" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px;"></div>
-        </div>
-    </div>
-    <label><b>Opis własny:</b></label>
-    <textarea id="p-desc" class="input" style="height:80px"></textarea>
-    <label><b>Norma / Podstawa:</b></label>
-    <input id="p-norm" class="input">
-    <div style="display:flex; gap:10px; margin-top:10px;">
-        <button class="btn btn-green" style="flex:1" onclick="savePoint()">ZAPISZ ZMIANY</button>
-        <button class="btn btn-red" onclick="deletePoint()">USUŃ</button>
-    </div>
+<div class="toolbar">
+<button onclick="newProject()">NOWY</button>
+<button onclick="saveJSON()">ZAPISZ</button>
+<button onclick="loadJSON()">WCZYTAJ</button>
+<button onclick="window.print()">PDF</button>
 </div>
 
-<div class="modal" id="modal-settings">
-    <h2 style="margin-top:0">Baza Kategorii i Elementów</h2>
-    <div class="settings-layout">
-        <div class="settings-tabs" id="st-tabs"></div>
-        <div id="st-content" style="flex-grow:1; padding-left:20px;"></div>
-    </div>
-    <div style="margin-top:20px; display:flex; gap:10px;">
-        <button class="btn btn-dark" onclick="addNewTab()">+ NOWA ZAKŁADKA</button>
-        <button class="btn btn-green" style="margin-left:auto" onclick="closeModals()">ZAMKNIJ I ZAPISZ</button>
-    </div>
-</div>
+<div id="app"></div>
 
-<div id="main-app"></div>
+<input type="file" id="loader" hidden>
 
 <script>
-    let data = {
-        config: { inv:'', adr:'', cli:'', date: new Date().toISOString().split('T')[0], logo:'', coverImg:'' },
-        floors: [],
-        base: [
-            { id: 'fixed_rooms', name: 'Pomieszczenia', locked: true, cats: [{ name: 'Lokal', items: ['Salon', 'Kuchnia', 'Łazienka'] }] },
-            { id: Date.now(), name: 'Elementy i Normy', cats: [{ name: 'Tynki', items: ['Odchyłka 3mm', 'Brak kąta'] }] }
-        ],
-        lastRoom: ''
-    };
+let data={meta:{inv:'',adr:'',cli:'',date:''},logo:'',img:'',floors:[],rooms:["Salon","Kuchnia","Łazienka","Sypialnia","Korytarz"]}
 
-    let f_room = 'wszystkie';
-    let f_stat = 'wszystkie';
-    let current = { fi: null, pi: null, tempImg: '', tabId: 'fixed_rooms' };
+let activeFloor=0
 
-    function renderApp() {
-        const app = document.getElementById('main-app');
-        app.innerHTML = '';
+function newProject(){
+ if(confirm("Utworzyć nowy projekt?")) data={meta:{inv:'',adr:'',cli:'',date:''},logo:'',img:'',floors:[],rooms:data.rooms}
+ addFloor()
+ render()
+}
 
-        // STRONA 1: OKŁADKA (SZTYWNE 297mm)
-        const cover = document.createElement('div');
-        cover.className = 'page page-cover';
-        cover.innerHTML = `
-            <div style="width:100%;">
-                <img src="${data.config.logo || ''}" style="max-height:100px; cursor:pointer;" onclick="uploadMedia('logo')" alt="[KLIKNIJ BY DODAĆ LOGO]">
-                <h1 style="font-size:32pt; font-weight:900; border-top:5px solid #000; border-bottom:5px solid #000; padding:25px 0; margin:40px 0;">PROTOKÓŁ ODBIORU TECHNICZNEGO</h1>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:30px; text-align:left; margin:40px auto; max-width:90%; font-size:14pt;">
-                    <div>Inwestycja: <input class="input" value="${data.config.inv}" oninput="data.config.inv=this.value"></div>
-                    <div>Adres: <input class="input" value="${data.config.adr}" oninput="data.config.adr=this.value"></div>
-                    <div>Zleceniodawca: <input class="input" value="${data.config.cli}" oninput="data.config.cli=this.value"></div>
-                    <div>Data: <input class="input" type="date" value="${data.config.date}" oninput="data.config.date=this.value"></div>
-                </div>
-                <div style="width:100%; height:100mm; background:#eee; cursor:pointer; display:flex; align-items:center; justify-content:center; overflow:hidden;" onclick="uploadMedia('cover')">
-                    ${data.config.coverImg ? `<img src="${data.config.coverImg}" style="width:100%; height:100%; object-fit:cover;">` : 'DODAJ ZDJĘCIE GŁÓWNE'}
-                </div>
-            </div>`;
-        app.appendChild(cover);
+function addFloor(){
+ data.floors.push({name:"Kondygnacja "+(data.floors.length+1),plan:'',def:[]})
+ activeFloor=data.floors.length-1
+}
 
-        // FILTRY
-        const filterUI = document.createElement('div');
-        filterUI.className = 'filter-bar no-print';
-        filterUI.innerHTML = `
-            <b>Filtruj:</b>
-            <select onchange="f_room=this.value; renderApp()"><option value="wszystkie">Wszystkie pomieszczenia</option>${getUniqueRooms().map(r=>`<option value="${r}" ${f_room==r?'selected':''}>${r}</option>`).join('')}</select>
-            <select onchange="f_stat=this.value; renderApp()"><option value="wszystkie">Wszystkie statusy</option><option value="status-zgloszone" ${f_stat=='status-zgloszone'?'selected':''}>Zgłoszone</option><option value="status-niezgloszone" ${f_stat=='status-niezgloszone'?'selected':''}>Niezgłoszone</option><option value="status-uwaga" ${f_stat=='status-uwaga'?'selected':''}>Do omówienia</option></select>
-        `;
-        app.appendChild(filterUI);
+function addDot(e){
+ let f=data.floors[activeFloor]
+ if(!f.plan){uploadPlan();return}
+ let r=e.currentTarget.getBoundingClientRect()
+ f.def.push({
+  x:(e.clientX-r.left)/r.width*100,
+  y:(e.clientY-r.top)/r.height*100,
+  room:data.rooms[0]||'',
+  desc:'',
+  norm:'',
+  status:'none',
+  img:''
+ })
+ render()
+}
 
-        // PIĘTRA
-        data.floors.forEach((f, fi) => {
-            const pageF = document.createElement('div');
-            pageF.className = 'page';
-            const visiblePts = f.pts.filter(p => (f_room=='wszystkie' || p.room==f_room) && (f_stat=='wszystkie' || p.stat==f_stat));
+function uploadPlan(){
+ let i=document.createElement('input')
+ i.type='file';i.accept='image/*'
+ i.onchange=e=>{
+  let r=new FileReader()
+  r.onload=ev=>{data.floors[activeFloor].plan=ev.target.result;render()}
+  r.readAsDataURL(e.target.files[0])
+ }
+ i.click()
+}
 
-            pageF.innerHTML = `
-                <div style="display:flex; justify-content:space-between; border-bottom:3px solid #000; margin-bottom:15px; padding-bottom:5px;">
-                    <input class="input" style="border:none; width:250px; margin:0; font-weight:bold; font-size:16pt;" value="${f.name}" oninput="data.floors[${fi}].name=this.value">
-                    <b style="align-self:center;">${data.config.inv}</b>
-                </div>
-                <div class="plan-area" onclick="handlePlanClick(event, ${fi})">
-                    ${f.img ? `<img src="${f.img}" class="plan-img" style="transform: rotate(${f.rot}deg) scale(${f.scale}); top:${f.offY}px; left:${f.offX}px;">` : '<h2>KLIKNIJ BY WGRAĆ RZUT</h2>'}
-                    ${visiblePts.map(p => {
-                        const originalIdx = f.pts.indexOf(p);
-                        return `<div class="dot ${p.stat}" style="left:${p.x}%; top:${p.y}%;" onclick="event.stopPropagation(); editPoint(${fi}, ${originalIdx})">${originalIdx+1}</div>`;
-                    }).join('')}
-                </div>
-                <div class="no-print" style="padding:15px; background:#ddd; display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
-                    <button class="btn btn-dark" onclick="rotateFloor(${fi})">OBRÓĆ 90°</button>
-                    Skala: <input type="range" min="0.1" max="4" step="0.01" value="${f.scale}" oninput="data.floors[${fi}].scale=this.value; syncPlan(${fi})">
-                    X: <input type="range" min="-1000" max="1000" value="${f.offX}" oninput="data.floors[${fi}].offX=this.value; syncPlan(${fi})">
-                    Y: <input type="range" min="-1000" max="1000" value="${f.offY}" oninput="data.floors[${fi}].offY=this.value; syncPlan(${fi})">
-                    <button class="btn btn-red" onclick="if(confirm('Usunąć piętro?')){data.floors.splice(${fi},1); renderApp()}">USUŃ PIĘTRO</button>
-                </div>`;
-            app.appendChild(pageF);
+function editDot(fi,di){
+ let d=data.floors[fi].def[di]
+ let room=prompt("Pomieszczenie:",d.room)
+ if(room!==null)d.room=room
+ let desc=prompt("Opis:",d.desc)
+ if(desc!==null)d.desc=desc
+ let norm=prompt("Norma:",d.norm)
+ if(norm!==null)d.norm=norm
+ let st=prompt("Status: zgłoszona / niezgłoszona / omówienie","zgłoszona")
+ d.status=st=="niezgłoszona"?"nrep":st=="zgłoszona"?"rep":"none"
+ render()
+}
 
-            // RAPORTY - PO 2 NA STRONĘ
-            for (let i = 0; i < visiblePts.length; i += 2) {
-                const pageL = document.createElement('div');
-                pageL.className = 'page';
-                for (let j = i; j < i + 2 && j < visiblePts.length; j++) {
-                    const p = visiblePts[j];
-                    const idx = f.pts.indexOf(p);
-                    pageL.innerHTML += `
-                        <div class="defect-row">
-                            <button class="btn btn-dark no-print" style="position:absolute; right:0; top:10px;" onclick="editPoint(${fi}, ${idx})">EDYTUJ</button>
-                            <div class="defect-img-container">${p.img ? `<img src="${p.img}">` : 'BRAK ZDJĘCIA'}</div>
-                            <div class="defect-info">
-                                <b style="font-size:18pt; color:var(--acc);">ZGŁOSZENIE NR ${idx+1}</b>
-                                <div style="display:inline-block; padding:4px 8px; border-radius:4px; font-weight:bold; color:#fff;" class="${p.stat}">${p.stat.split('-')[1].toUpperCase()}</div>
-                                <div style="margin-top:10px; font-size:14pt;"><b>Pomieszczenie:</b> ${p.room}</div>
-                                <div><b>Elementy:</b> ${p.tags.join(', ')}</div>
-                                <div style="flex-grow:1; font-size:12pt; margin-top:5px;"><b>Opis:</b> ${p.desc}</div>
-                                ${p.norm ? `<div style="border-left:4px solid red; padding-left:10px; color:red; font-weight:bold; margin-top:10px;">NORMA: ${p.norm}</div>` : ''}
-                            </div>
-                        </div>`;
-                }
-                app.appendChild(pageL);
-            }
-        });
-    }
+function render(){
+ let app=document.getElementById('app')
+ app.innerHTML=`
+<div class="page">
+<input placeholder="Nazwa inwestycji" value="${data.meta.inv}" oninput="data.meta.inv=this.value">
+<input placeholder="Adres" value="${data.meta.adr}" oninput="data.meta.adr=this.value">
+<input placeholder="Zamawiający" value="${data.meta.cli}" oninput="data.meta.cli=this.value">
+<input type="date" value="${data.meta.date}" oninput="data.meta.date=this.value">
+</div>
 
-    function syncPlan(fi) {
-        const img = document.querySelectorAll('.plan-img')[fi];
-        const f = data.floors[fi];
-        if(img) {
-            img.style.transform = `rotate(${f.rot}deg) scale(${f.scale})`;
-            img.style.top = f.offY + 'px';
-            img.style.left = f.offX + 'px';
-        }
-    }
+<div class="page">
+<div class="toolbar">
+<button onclick="addFloor()">+ PIĘTRO</button>
+</div>
+<select onchange="activeFloor=this.value;render()">
+${data.floors.map((f,i)=>`<option value="${i}" ${i==activeFloor?'selected':''}>${f.name}</option>`).join('')}
+</select>
+<div class="planBox" onclick="addDot(event)">
+${data.floors[activeFloor]?.plan?`<img src="${data.floors[activeFloor].plan}">`:"DODAJ RZUT"}
+${data.floors[activeFloor]?.def.map((d,i)=>`<div class="dot ${d.status}" style="left:${d.x}%;top:${d.y}%" onclick="event.stopPropagation();editDot(${activeFloor},${i})">${i+1}</div>`).join('')}
+</div>
+<div class="counter">
+<span>Łącznie: ${data.floors[activeFloor]?.def.length||0}</span>
+<span>Zgłoszone: ${data.floors[activeFloor]?.def.filter(x=>x.status=='rep').length||0}</span>
+<span>Niezgłoszone: ${data.floors[activeFloor]?.def.filter(x=>x.status=='nrep').length||0}</span>
+<span>Do omówienia: ${data.floors[activeFloor]?.def.filter(x=>x.status=='none').length||0}</span>
+</div>
+</div>
+`
+}
 
-    function getUniqueRooms() {
-        let r = new Set();
-        data.floors.forEach(f => f.pts.forEach(p => r.add(p.room)));
-        return Array.from(r);
-    }
+function saveJSON(){
+ let a=document.createElement('a')
+ a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}))
+ a.download=(data.meta.inv||'raport')+'.json'
+ a.click()
+}
 
-    function handlePlanClick(e, fi) {
-        if(!data.floors[fi].img) return uploadMedia('plan', fi);
-        const rect = e.currentTarget.getBoundingClientRect();
-        const pi = data.floors[fi].pts.length;
-        data.floors[fi].pts.push({ 
-            x: ((e.clientX - rect.left)/rect.width)*100, 
-            y: ((e.clientY - rect.top)/rect.height)*100, 
-            room: data.lastRoom, desc: '', norm: '', stat: 'status-uwaga', img: '', tags: [] 
-        });
-        renderApp();
-        editPoint(fi, pi);
-    }
+function loadJSON(){
+ let l=document.getElementById('loader')
+ l.onchange=e=>{
+  let r=new FileReader()
+  r.onload=ev=>{data=JSON.parse(ev.target.result);render()}
+  r.readAsText(e.target.files[0])
+ }
+ l.click()
+}
 
-    function editPoint(fi, pi) {
-        current.fi = fi; current.pi = pi;
-        const p = data.floors[fi].pts[pi];
-        current.tempImg = p.img;
-        document.getElementById('p-room').value = p.room;
-        document.getElementById('p-status').value = p.stat;
-        document.getElementById('p-desc').value = p.desc;
-        document.getElementById('p-norm').value = p.norm;
-        document.getElementById('p-photo-preview').innerHTML = p.img ? `<img src="${p.img}" style="max-height:100%">` : 'Dodaj zdjęcie';
-        
-        const selectors = document.getElementById('point-selectors');
-        selectors.innerHTML = '';
-        data.base.forEach(zakladka => {
-            const sel = document.createElement('select');
-            sel.className = 'input';
-            sel.innerHTML = `<option value="">-- Wybierz z: ${zakladka.name} --</option>` + 
-                zakladka.cats.map(c => `<optgroup label="${c.name}">${c.items.map(it => `<option value="${it}">${it}</option>`).join('')}</optgroup>`).join('');
-            sel.onchange = (e) => {
-                if(e.target.value && !p.tags.includes(e.target.value)) {
-                    p.tags.push(e.target.value);
-                    if(zakladka.id === 'fixed_rooms') document.getElementById('p-room').value = e.target.value;
-                    if(zakladka.name.toLowerCase().includes('norm')) document.getElementById('p-norm').value = e.target.value;
-                    refreshTags();
-                }
-            };
-            selectors.appendChild(sel);
-        });
-        refreshTags();
-        document.getElementById('overlay').style.display = 'block';
-        document.getElementById('modal-point').style.display = 'block';
-    }
+window.onbeforeunload=e=>{
+ e.preventDefault()
+ e.returnValue=''
+}
 
-    function refreshTags() {
-        const box = document.getElementById('p-tags');
-        const p = data.floors[current.fi].pts[current.pi];
-        box.innerHTML = p.tags.map((t, i) => `<span style="background:var(--main); color:#fff; padding:5px 10px; border-radius:15px; font-size:11px;">${t} <b onclick="data.floors[${current.fi}].pts[${current.pi}].tags.splice(${i},1); refreshTags();" style="cursor:pointer; color:red; margin-left:5px;">✕</b></span>`).join('');
-    }
+addFloor()
+render()
 
-    function savePoint() {
-        const p = data.floors[current.fi].pts[current.pi];
-        p.room = document.getElementById('p-room').value;
-        p.stat = document.getElementById('p-status').value;
-        p.desc = document.getElementById('p-desc').value;
-        p.norm = document.getElementById('p-norm').value;
-        p.img = current.tempImg;
-        data.lastRoom = p.room;
-        closeModals();
-        renderApp();
-    }
-
-    function deletePoint() {
-        if(confirm('Na pewno usunąć?')) {
-            data.floors[current.fi].pts.splice(current.pi, 1);
-            closeModals();
-            renderApp();
-        }
-    }
-
-    // USTAWIENIA BAZY
-    function openSettings() {
-        renderSettings();
-        document.getElementById('overlay').style.display = 'block';
-        document.getElementById('modal-settings').style.display = 'block';
-    }
-
-    function renderSettings() {
-        const tabs = document.getElementById('st-tabs');
-        tabs.innerHTML = data.base.map(b => `<button class="tab-btn ${current.tabId==b.id?'active':''}" onclick="current.tabId='${b.id}'; renderSettings()">${b.name}</button>`).join('');
-        
-        const b = data.base.find(x => x.id == current.tabId);
-        const cont = document.getElementById('st-content');
-        cont.innerHTML = `<h3>Zakładka: <input value="${b.name}" ${b.locked?'disabled':''} oninput="b.name=this.value; renderSettings()" style="padding:5px"> ${b.locked?'':'<button onclick="removeTab('+b.id+')" class="btn btn-red">USUŃ</button>'}</h3>`;
-        
-        b.cats.forEach((c, ci) => {
-            cont.innerHTML += `
-                <div style="border:1px solid #ddd; padding:10px; margin-bottom:10px; background:#f9f9f9;">
-                    Kategoria: <input value="${c.name}" oninput="b.cats[${ci}].name=this.value" style="padding:5px"> <button onclick="b.cats.splice(${ci},1); renderSettings()" class="btn btn-red">✕</button>
-                    <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px;">
-                        ${c.items.map((it, ii) => `<div style="background:#eee; padding:5px; border-radius:3px;">${it} <b onclick="b.cats[${ci}].items.splice(${ii},1); renderSettings()" style="color:red; cursor:pointer">✕</b></div>`).join('')}
-                        <button onclick="let n=prompt('Nazwa:'); if(n) b.cats[${ci}].items.push(n); renderSettings()" class="btn btn-dark">+ DODAJ</button>
-                    </div>
-                </div>`;
-        });
-        cont.innerHTML += `<button onclick="b.cats.push({name:'Nowa', items:[]}); renderSettings()" class="btn btn-blue">+ NOWA KATEGORIA</button>`;
-    }
-
-    function addNewTab() { let id = Date.now(); data.base.push({ id, name: 'Nowa', cats: [] }); current.tabId = id; renderSettings(); }
-    function removeTab(id) { data.base = data.base.filter(x => x.id != id); current.tabId = 'fixed_rooms'; renderSettings(); }
-
-    // MEDIA
-    function uploadMedia(type, fi = null) {
-        const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
-        inp.onchange = e => {
-            const reader = new FileReader();
-            reader.onload = ev => {
-                if(type === 'logo') data.config.logo = ev.target.result;
-                else if(type === 'cover') data.config.coverImg = ev.target.result;
-                else if(type === 'plan') data.floors[fi].img = ev.target.result;
-                renderApp();
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        };
-        inp.click();
-    }
-
-    function uploadDefectPhoto() {
-        const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
-        inp.onchange = e => {
-            const reader = new FileReader();
-            reader.onload = ev => {
-                current.tempImg = ev.target.result;
-                document.getElementById('p-photo-preview').innerHTML = `<img src="${ev.target.result}" style="max-height:100%">`;
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        };
-        inp.click();
-    }
-
-    function rotateFloor(fi) { data.floors[fi].rot = (data.floors[fi].rot + 90) % 360; renderApp(); }
-    function addFloor() { data.floors.push({ name: 'Poziom '+(data.floors.length+1), img:'', pts:[], rot:0, scale:1, offX:0, offY:0 }); renderApp(); }
-    function closeModals() { document.querySelectorAll('.modal, .overlay').forEach(m => m.style.display = 'none'); }
-    function saveData() {
-        const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-        a.download = `Raport_${data.config.inv || 'Odbior'}.json`; a.click();
-    }
-    function loadData(e) {
-        const reader = new FileReader();
-        reader.onload = ev => { data = JSON.parse(ev.target.result); renderApp(); };
-        reader.readAsText(e.target.files[0]);
-    }
-
-    // Start
-    if(data.floors.length === 0) addFloor();
-    renderApp();
+if('serviceWorker'in navigator){
+ navigator.serviceWorker.register('sw.js')
+}
 </script>
+
 </body>
 </html>
