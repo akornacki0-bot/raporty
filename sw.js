@@ -1,13 +1,14 @@
+const CACHE_NAME = 'raport-v40';
+const ASSETS = [
+  './',
+  './index.html',
+  './config.json'
+];
+
 self.addEventListener('install', e => {
- e.waitUntil(
-  caches.open('raport-pro-v1').then(cache => {
-   return cache.addAll(['./','index.html','manifest.json'])
-  })
- )
-})
+  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
+});
 
 self.addEventListener('fetch', e => {
- e.respondWith(
-  caches.match(e.request).then(r => r || fetch(e.request))
- )
-})
+  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+});
