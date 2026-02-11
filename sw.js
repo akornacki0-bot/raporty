@@ -1,9 +1,5 @@
-const CACHE_NAME = 'raport-v40';
-const ASSETS = [
-  './',
-  './index.html',
-  './config.json'
-];
+const CACHE_NAME = 'raport-v40-final';
+const ASSETS = ['./', './index.html', './config.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));

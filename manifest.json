@@ -1,5 +1,5 @@
 {
-  "rooms": ["Salon", "Kuchnia", "Łazienka", "Przedpokój", "Sypialnia 1", "Sypialnia 2", "Balkon"],
+  "rooms": ["Salon", "Kuchnia", "Łazienka", "Sypialnia", "Balkon", "Przedpokój", "Garaż", "Komórka"],
   "categories": [
     {
       "name": "Tynki i Ściany",
@@ -8,16 +8,28 @@
         "Brak kąta prostego",
         "Zanieczyszczenie tynku",
         "Rysa skurczowa",
-        "Głuchy tynk"
+        "Głuchy tynk (brak przyczepności)",
+        "Nierówność płaszczyzny"
       ]
     },
     {
       "name": "Stolarka",
       "items": [
         "Rysa na szybie (widoczna z 1m)",
-        "Nieszczelność uszczelki",
-        "Porysowany parapet",
-        "Brak regulacji skrzydła"
+        "Uszkodzenie ramy okiennej",
+        "Nieszczelność / przedmuch",
+        "Brak regulacji skrzydła",
+        "Uszkodzona uszczelka",
+        "Porysowany parapet"
+      ]
+    },
+    {
+      "name": "Posadzki",
+      "items": [
+        "Pęknięcie szlichty",
+        "Brak dylatacji obwodowej",
+        "Nierówność (klawiszowanie)",
+        "Zawilgocenie"
       ]
     }
   ]
